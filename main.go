@@ -13,12 +13,22 @@ import (
 )
 
 const (
+	FPS_TARGET                = 144
 	SCREEN_WIDTH              = 800
 	SCREEN_HEIGHT             = 600
-	FPS_TARGET                = 144
-	RECT_SIZE                 = 10
+	PLAYER_RECT_SIZE          = 10
 	STATS_BOTTOM_SIZE float32 = 35
 )
+
+// can be looked up via -> lvl indexed lvl 1 = index 1
+var EXP_LVL_LOOKUP = [...]int{
+	0,
+	100,
+	1000,
+	10_000,
+	50_000,
+	100_0000,
+}
 
 var (
 	FPS_AVG      = make([]float64, 0, FPS_TARGET+10)
@@ -29,10 +39,12 @@ var (
 type Game struct {
 	posX         float32
 	posY         float32
-	level        int
 	health       int
 	dmg          float32
 	healthAbsorb float32
+	level        int
+	exp          int
+	expNeeded    int
 }
 
 // Update proceeds the game state.
@@ -46,7 +58,7 @@ func (g *Game) Update() error {
 }
 
 func movementController(g *Game) {
-	minDiffToCorner := float32(RECT_SIZE + 1)
+	minDiffToCorner := float32(PLAYER_RECT_SIZE + 1)
 	// up
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
 		if g.posY > minDiffToCorner {
@@ -86,8 +98,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	vector.FillRect(
 		screen,
 		g.posX-4, g.posY-4,
-		RECT_SIZE,
-		RECT_SIZE,
+		PLAYER_RECT_SIZE,
+		PLAYER_RECT_SIZE,
 		color.White,
 		true,
 	)
@@ -105,7 +117,7 @@ func statsBottom(g *Game, screen *ebiten.Image) {
 	var bottomDistance int = 10
 	text.Draw(
 		screen,
-		fmt.Sprintf("health: %d | dmg: %0.2f | health absorb: %d%% | lvl: %v", g.health, g.dmg, int(g.healthAbsorb*100), g.level),
+		fmt.Sprintf("health: %d | dmg: %0.2f | health absorb: %d%% | lvl: %v | exp: %d/%d", g.health, g.dmg, int(g.healthAbsorb*100), g.level, g.exp, g.expNeeded),
 		basicfont.Face7x13,
 		10,
 		SCREEN_HEIGHT-bottomDistance,
@@ -121,7 +133,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1}
+	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: EXP_LVL_LOOKUP[1]}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FPS_TARGET)
 	ebiten.SetWindowSize(1024, 768)
