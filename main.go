@@ -18,10 +18,16 @@ const (
 	SCREEN_HEIGHT             = 600
 	PLAYER_RECT_SIZE          = 10
 	STATS_BOTTOM_SIZE float32 = 35
+	LVL_MAX           int     = 6
+)
+
+var (
+	FPS_AVG      = make([]float64, 0, FPS_TARGET+10)
+	TIME_CURRENT = time.Now()
 )
 
 // can be looked up via -> lvl indexed lvl 1 = index 1
-var EXP_LVL_LOOKUP = [...]int{
+var EXP_LVL_LOOKUP [LVL_MAX]int = [...]int{
 	0,
 	100,
 	1000,
@@ -30,9 +36,13 @@ var EXP_LVL_LOOKUP = [...]int{
 	100_0000,
 }
 
+// can all be looked up via -> enemies lvl-> lvl 1 = index 1
 var (
-	FPS_AVG      = make([]float64, 0, FPS_TARGET+10)
-	TIME_CURRENT = time.Now()
+	enemy_dmg_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemy_health_lookup [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemy_exp_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	// slower on lower lvl
+	enemy_attack_speed_lookup [LVL_MAX]int = [...]int{0, 5_000, 4_000, 2_000, 1_000, 500}
 )
 
 // Game implements ebiten.Game interface.
@@ -45,6 +55,19 @@ type Game struct {
 	level        int
 	exp          int
 	expNeeded    int
+	enemies      [10]Enemy
+}
+
+type Enemy struct {
+	posX   float32
+	posY   float32
+	lvl    int
+	dmg    int
+	health int
+	exp    int
+	// ms
+	attackSpeed int
+	lastAttack  time.Time
 }
 
 // Update proceeds the game state.
@@ -117,7 +140,8 @@ func statsBottom(g *Game, screen *ebiten.Image) {
 	var bottomDistance int = 10
 	text.Draw(
 		screen,
-		fmt.Sprintf("health: %d | dmg: %0.2f | health absorb: %d%% | lvl: %v | exp: %d/%d", g.health, g.dmg, int(g.healthAbsorb*100), g.level, g.exp, g.expNeeded),
+		fmt.Sprintf("health: %d | dmg: %0.2f | health absorb: %d%% | lvl: %v | exp: %d/%d",
+			g.health, g.dmg, int(g.healthAbsorb*100), g.level, g.exp, g.expNeeded),
 		basicfont.Face7x13,
 		10,
 		SCREEN_HEIGHT-bottomDistance,
