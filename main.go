@@ -1,17 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"log"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 const (
-	screenW = 320
-	screenH = 240
+	SCREEN_WIDTH  = 320
+	SCREEN_HEIGHT = 240
+	FPS_TARGET    = 100
+)
+
+var (
+	FPS_AVG      = make([]float64, 0, FPS_TARGET+10)
+	TIME_CURRENT = time.Now()
 )
 
 // Game implements ebiten.Game interface.
@@ -27,8 +33,8 @@ func (g *Game) Update() error {
 	cursorX, cursorY := ebiten.CursorPosition()
 	g.x = float32(cursorX)
 	g.y = float32(cursorY)
-	fmt.Printf("cursorX: %v\n", cursorX)
-	fmt.Printf("cursorY: %v\n", cursorY)
+	// fmt.Printf("cursorX: %v\n", cursorX)
+	// fmt.Printf("cursorY: %v\n", cursorY)
 
 	return nil
 }
@@ -47,21 +53,21 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		color.White,
 		true,
 	)
-	fps := ebiten.ActualFPS()
-	log.Printf("FPS: %0.2f", fps)
+
+	logFpsAvg()
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return screenW, screenH
+	return SCREEN_WIDTH, SCREEN_HEIGHT
 	// return 1024, 768
 }
 
 func main() {
 	game := &Game{x: 10, y: 10}
 	// Specify the window size as you like. Here, a doubled size is specified.
-	ebiten.SetTPS(60)
+	ebiten.SetTPS(FPS_TARGET)
 	ebiten.SetWindowSize(1024, 768)
 	// ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Your game's title")
@@ -74,5 +80,21 @@ func main() {
 	// Call ebiten.RunGame to start your game loop.
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func logFpsAvg() {
+	fps := ebiten.ActualTPS()
+	FPS_AVG = append(FPS_AVG, fps)
+
+	if time.Since(TIME_CURRENT) >= time.Second {
+		var sum float64 = 0
+		for _, v := range FPS_AVG {
+			sum += v
+		}
+		log.Printf("Avg FPS last second: %0.2f", (sum / float64(len(FPS_AVG))))
+
+		TIME_CURRENT = time.Now()
+		FPS_AVG = make([]float64, 0, FPS_TARGET+10)
 	}
 }
