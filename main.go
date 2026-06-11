@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"time"
@@ -10,9 +11,10 @@ import (
 )
 
 const (
-	SCREEN_WIDTH  = 320
-	SCREEN_HEIGHT = 240
-	FPS_TARGET    = 100
+	SCREEN_WIDTH  = 800
+	SCREEN_HEIGHT = 600
+	FPS_TARGET    = 144
+	RECT_SIZE     = 10
 )
 
 var (
@@ -30,13 +32,42 @@ type Game struct {
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
 	// Write your game's logical update.
-	cursorX, cursorY := ebiten.CursorPosition()
-	g.x = float32(cursorX)
-	g.y = float32(cursorY)
-	// fmt.Printf("cursorX: %v\n", cursorX)
-	// fmt.Printf("cursorY: %v\n", cursorY)
+	movementController(g)
 
+	logFpsAvg()
 	return nil
+}
+
+func movementController(g *Game) {
+	minDiffToCorner := float32(RECT_SIZE + 1)
+	// up
+	if ebiten.IsKeyPressed(ebiten.KeyS) {
+		if g.y > minDiffToCorner {
+			g.y -= 1
+		}
+		fmt.Println("s key pressed")
+	}
+	// down
+	if ebiten.IsKeyPressed(ebiten.KeyD) {
+		if g.y < SCREEN_HEIGHT-minDiffToCorner {
+			g.y += 1
+		}
+		fmt.Println("d key pressed")
+	}
+	// left
+	if ebiten.IsKeyPressed(ebiten.KeyA) {
+		if g.x > minDiffToCorner {
+			g.x -= 1
+		}
+		fmt.Println("a key pressed")
+	}
+	// right
+	if ebiten.IsKeyPressed(ebiten.KeyF) {
+		if g.x < SCREEN_WIDTH-minDiffToCorner {
+			g.x += 1
+		}
+		fmt.Println("f key pressed")
+	}
 }
 
 // Draw draws the game screen.
@@ -48,13 +79,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	vector.FillRect(
 		screen,
 		g.x-4, g.y-4,
-		10,
-		10,
+		RECT_SIZE,
+		RECT_SIZE,
 		color.White,
 		true,
 	)
-
-	logFpsAvg()
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
