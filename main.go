@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font/basicfont"
 )
 
 const (
@@ -24,8 +26,12 @@ var (
 
 // Game implements ebiten.Game interface.
 type Game struct {
-	x float32
-	y float32
+	posX         float32
+	posY         float32
+	level        int
+	health       int
+	dmg          float32
+	healthAbsorb float32
 }
 
 // Update proceeds the game state.
@@ -34,7 +40,7 @@ func (g *Game) Update() error {
 	// Write your game's logical update.
 	movementController(g)
 
-	logFpsAvg()
+	go logFpsAvg()
 	return nil
 }
 
@@ -42,29 +48,29 @@ func movementController(g *Game) {
 	minDiffToCorner := float32(RECT_SIZE + 1)
 	// up
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		if g.y > minDiffToCorner {
-			g.y -= 1
+		if g.posY > minDiffToCorner {
+			g.posY -= 1
 		}
 		fmt.Println("s key pressed")
 	}
 	// down
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		if g.y < SCREEN_HEIGHT-minDiffToCorner {
-			g.y += 1
+		if g.posY < SCREEN_HEIGHT-minDiffToCorner {
+			g.posY += 1
 		}
 		fmt.Println("d key pressed")
 	}
 	// left
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		if g.x > minDiffToCorner {
-			g.x -= 1
+		if g.posX > minDiffToCorner {
+			g.posX -= 1
 		}
 		fmt.Println("a key pressed")
 	}
 	// right
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		if g.x < SCREEN_WIDTH-minDiffToCorner {
-			g.x += 1
+		if g.posX < SCREEN_WIDTH-minDiffToCorner {
+			g.posX += 1
 		}
 		fmt.Println("f key pressed")
 	}
@@ -78,11 +84,32 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	vector.FillRect(
 		screen,
-		g.x-4, g.y-4,
+		g.posX-4, g.posY-4,
 		RECT_SIZE,
 		RECT_SIZE,
 		color.White,
 		true,
+	)
+
+	statsBottom(g, screen)
+}
+
+func statsBottom(g *Game, screen *ebiten.Image) {
+	// draw bottom line
+	var lineBottomDistance float32 = 50
+	vector.StrokeLine(screen, 0, SCREEN_HEIGHT-lineBottomDistance,
+		SCREEN_WIDTH, SCREEN_HEIGHT-lineBottomDistance,
+		10, color.Black, true)
+
+	// todo draw bottom stats
+	var statsBottomDistance int = 10
+	text.Draw(
+		screen,
+		fmt.Sprintf("health: %d", g.health),
+		basicfont.Face7x13,
+		10,
+		SCREEN_HEIGHT-statsBottomDistance,
+		color.White,
 	)
 }
 
@@ -94,7 +121,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	game := &Game{x: 10, y: 10}
+	game := &Game{posX: 10, posY: 10, health: 99}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FPS_TARGET)
 	ebiten.SetWindowSize(1024, 768)
