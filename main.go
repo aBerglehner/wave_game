@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	SCREEN_WIDTH  = 800
-	SCREEN_HEIGHT = 600
-	FPS_TARGET    = 144
-	RECT_SIZE     = 10
+	SCREEN_WIDTH              = 800
+	SCREEN_HEIGHT             = 600
+	FPS_TARGET                = 144
+	RECT_SIZE                 = 10
+	STATS_BOTTOM_SIZE float32 = 35
 )
 
 var (
@@ -55,7 +56,7 @@ func movementController(g *Game) {
 	}
 	// down
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		if g.posY < SCREEN_HEIGHT-minDiffToCorner {
+		if g.posY < SCREEN_HEIGHT-STATS_BOTTOM_SIZE-minDiffToCorner {
 			g.posY += 1
 		}
 		fmt.Println("d key pressed")
@@ -95,20 +96,19 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func statsBottom(g *Game, screen *ebiten.Image) {
-	// draw bottom line
-	var lineBottomDistance float32 = 50
-	vector.StrokeLine(screen, 0, SCREEN_HEIGHT-lineBottomDistance,
-		SCREEN_WIDTH, SCREEN_HEIGHT-lineBottomDistance,
+	// bottom line
+	vector.StrokeLine(screen, 0, SCREEN_HEIGHT-STATS_BOTTOM_SIZE,
+		SCREEN_WIDTH, SCREEN_HEIGHT-STATS_BOTTOM_SIZE,
 		10, color.Black, true)
 
-	// todo draw bottom stats
-	var statsBottomDistance int = 10
+	// stats
+	var bottomDistance int = 10
 	text.Draw(
 		screen,
-		fmt.Sprintf("health: %d", g.health),
+		fmt.Sprintf("health: %d | dmg: %0.2f | health absorb: %d%% | lvl: %v", g.health, g.dmg, int(g.healthAbsorb*100), g.level),
 		basicfont.Face7x13,
 		10,
-		SCREEN_HEIGHT-statsBottomDistance,
+		SCREEN_HEIGHT-bottomDistance,
 		color.White,
 	)
 }
@@ -121,7 +121,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	game := &Game{posX: 10, posY: 10, health: 99}
+	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FPS_TARGET)
 	ebiten.SetWindowSize(1024, 768)
