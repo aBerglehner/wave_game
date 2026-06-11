@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+### coded for the use of -> alt+shift+r
 # this will create a run window if it not exist in this tmux session
 # and than restarts the go run main.go
 

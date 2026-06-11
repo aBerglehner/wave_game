@@ -69,6 +69,8 @@ func main() {
 	// only for development
 	ebiten.SetWindowPosition(2200, 0)
 
+	ebiten.SetCursorMode(ebiten.CursorModeHidden)
+
 	// Call ebiten.RunGame to start your game loop.
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
