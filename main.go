@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"log"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font/basicfont"
@@ -26,6 +28,18 @@ var (
 	TIME_CURRENT = time.Now()
 )
 
+// player -> protagonist
+var (
+	PLAYER_CURRENT_FRAME = 1
+	PLAYER_SHEET         *ebiten.Image
+	PLAYER_FRAMES        = []image.Rectangle{
+		image.Rect(0, 0, 64, 64),     // top-left
+		image.Rect(64, 0, 128, 64),   // top-right
+		image.Rect(0, 64, 64, 128),   // bottom-left
+		image.Rect(64, 64, 128, 128), // bottom-right
+	}
+)
+
 // can be looked up via -> lvl indexed lvl 1 = index 1
 var EXP_LVL_LOOKUP [LVL_MAX]int = [...]int{
 	0,
@@ -35,15 +49,6 @@ var EXP_LVL_LOOKUP [LVL_MAX]int = [...]int{
 	50_000,
 	100_0000,
 }
-
-// can all be looked up via -> enemies lvl-> lvl 1 = index 1
-var (
-	enemy_dmg_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemy_health_lookup [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemy_exp_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	// slower on lower lvl
-	enemy_attack_speed_lookup [LVL_MAX]int = [...]int{0, 5_000, 4_000, 2_000, 1_000, 500}
-)
 
 // Game implements ebiten.Game interface.
 type Game struct {
@@ -58,6 +63,17 @@ type Game struct {
 	enemies      [10]Enemy
 }
 
+// can all be looked up via -> enemies lvl-> lvl 1 = index 1
+var (
+	// TODO: fill stats
+	enemy_dmg_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemy_health_lookup [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemy_exp_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	// slower on lower lvl
+	enemy_attack_speed_lookup [LVL_MAX]int = [...]int{0, 5_000, 4_000, 2_000, 1_000, 500}
+)
+
+// TODO: spwan enemies
 type Enemy struct {
 	posX   float32
 	posY   float32
@@ -86,29 +102,36 @@ func movementController(g *Game) {
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
 		if g.posY > minDiffToCorner {
 			g.posY -= 1
+			// OPTIMIZE:sure not needed every frame ->
+			// idea either if check
+			// or time based check and just set it every n frames to correct position so we get maybe also some transition
+			PLAYER_CURRENT_FRAME = 1
 		}
-		fmt.Println("s key pressed")
+		// fmt.Println("s key pressed")
 	}
 	// down
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
 		if g.posY < SCREEN_HEIGHT-STATS_BOTTOM_SIZE-minDiffToCorner {
 			g.posY += 1
+			PLAYER_CURRENT_FRAME = 0
 		}
-		fmt.Println("d key pressed")
+		// fmt.Println("d key pressed")
 	}
 	// left
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		if g.posX > minDiffToCorner {
 			g.posX -= 1
+			PLAYER_CURRENT_FRAME = 2
 		}
-		fmt.Println("a key pressed")
+		// fmt.Println("a key pressed")
 	}
 	// right
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
 		if g.posX < SCREEN_WIDTH-minDiffToCorner {
 			g.posX += 1
+			PLAYER_CURRENT_FRAME = 3
 		}
-		fmt.Println("f key pressed")
+		// fmt.Println("f key pressed")
 	}
 }
 
@@ -118,14 +141,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Write your game's rendering.
 	screen.Fill(color.RGBA{30, 100, 50, 1})
 
-	vector.FillRect(
-		screen,
-		g.posX-4, g.posY-4,
-		PLAYER_RECT_SIZE,
-		PLAYER_RECT_SIZE,
-		color.White,
-		true,
-	)
+	// draw player
+	sprite := PLAYER_SHEET.SubImage(PLAYER_FRAMES[PLAYER_CURRENT_FRAME]).(*ebiten.Image)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(g.posX), float64(g.posY))
+	screen.DrawImage(sprite, op)
 
 	statsBottom(g, screen)
 }
@@ -156,7 +176,16 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	// return 1024, 768
 }
 
+func init() {
+	img, _, err := ebitenutil.NewImageFromFile("assets/protagonist.png")
+	if err != nil {
+		panic(err)
+	}
+	PLAYER_SHEET = img
+}
+
 func main() {
+	// TODO: check golang struct init???
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: EXP_LVL_LOOKUP[1]}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FPS_TARGET)
