@@ -16,9 +16,9 @@ import (
 
 const (
 	FPS_TARGET                = 144
-	SCREEN_WIDTH              = 800
-	SCREEN_HEIGHT             = 600
-	PLAYER_RECT_SIZE          = 10
+	SCREEN_WIDTH              = 1400
+	SCREEN_HEIGHT             = 1050
+	PLAYER_RECT_SIZE          = 64
 	STATS_BOTTOM_SIZE float32 = 35
 	LVL_MAX           int     = 6
 )
@@ -97,10 +97,10 @@ func (g *Game) Update() error {
 }
 
 func movementController(g *Game) {
-	minDiffToCorner := float32(PLAYER_RECT_SIZE + 1)
+	minDiffToCorner := float32(PLAYER_RECT_SIZE)
 	// up
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		if g.posY > minDiffToCorner {
+		if g.posY > 0 {
 			g.posY -= 1
 			// OPTIMIZE:sure not needed every frame ->
 			// idea either if check
@@ -119,7 +119,7 @@ func movementController(g *Game) {
 	}
 	// left
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		if g.posX > minDiffToCorner {
+		if g.posX > 0 {
 			g.posX -= 1
 			PLAYER_CURRENT_FRAME = 2
 		}
@@ -127,7 +127,7 @@ func movementController(g *Game) {
 	}
 	// right
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		if g.posX < SCREEN_WIDTH-minDiffToCorner {
+		if g.posX <= SCREEN_WIDTH-minDiffToCorner {
 			g.posX += 1
 			PLAYER_CURRENT_FRAME = 3
 		}
@@ -189,7 +189,7 @@ func main() {
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: EXP_LVL_LOOKUP[1]}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FPS_TARGET)
-	ebiten.SetWindowSize(1024, 768)
+	ebiten.SetWindowSize(1400, 1050)
 	// ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Your game's title")
 
