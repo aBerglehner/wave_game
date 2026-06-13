@@ -5,6 +5,9 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"os"
+	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -18,7 +21,6 @@ const (
 	FPS_TARGET                = 144
 	SCREEN_WIDTH              = 1400
 	SCREEN_HEIGHT             = 1050
-	PLAYER_RECT_SIZE          = 64
 	STATS_BOTTOM_SIZE float32 = 35
 	LVL_MAX           int     = 6
 )
@@ -29,6 +31,8 @@ var (
 )
 
 // player -> protagonist
+const PLAYER_RECT_SIZE = 64
+
 var (
 	PLAYER_CURRENT_FRAME = 1
 	PLAYER_SHEET         *ebiten.Image
@@ -38,6 +42,12 @@ var (
 		image.Rect(0, 64, 64, 128),   // bottom-left
 		image.Rect(64, 64, 128, 128), // bottom-right
 	}
+)
+
+// enemies
+var (
+	// 0 indexed
+	MONSTERS []*ebiten.Image
 )
 
 // can be looked up via -> lvl indexed lvl 1 = index 1
@@ -77,6 +87,7 @@ var (
 type Enemy struct {
 	posX   float32
 	posY   float32
+	alive  bool
 	lvl    int
 	dmg    int
 	health int
@@ -91,6 +102,10 @@ type Enemy struct {
 func (g *Game) Update() error {
 	// Write your game's logical update.
 	movementController(g)
+
+	// TODO:load check which monster is alive -> otherwise spawn a new one
+	// TODO:load it to random postion that is valid
+	// TODO:load only +1 -1 to own level monsters
 
 	go logFpsAvg()
 	return nil
@@ -147,6 +162,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(g.posX), float64(g.posY))
 	screen.DrawImage(sprite, op)
 
+	// enemies
+	op2 := &ebiten.DrawImageOptions{}
+	op2.GeoM.Scale(0.35, 0.35)
+	op2.GeoM.Translate(100, 100)
+	screen.DrawImage(MONSTERS[1], op2)
+	// TODO:draw all g.enemies
+
 	statsBottom(g, screen)
 }
 
@@ -182,6 +204,13 @@ func init() {
 		panic(err)
 	}
 	PLAYER_SHEET = img
+
+	// enemies
+	monsters, err := loadMonsterImages("assets/monsters")
+	if err != nil {
+		panic(err)
+	}
+	MONSTERS = monsters
 }
 
 func main() {
@@ -218,4 +247,38 @@ func logFpsAvg() {
 		TIME_CURRENT = time.Now()
 		FPS_AVG = make([]float64, 0, FPS_TARGET+10)
 	}
+}
+
+func loadMonsterImages(dir string) ([]*ebiten.Image, error) {
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name() < files[j].Name()
+	})
+
+	var images []*ebiten.Image
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		ext := filepath.Ext(file.Name())
+		if ext != ".png" {
+			continue
+		}
+
+		path := filepath.Join(dir, file.Name())
+
+		img, _, err := ebitenutil.NewImageFromFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		images = append(images, img)
+	}
+
+	return images, nil
 }
