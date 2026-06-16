@@ -33,7 +33,7 @@ type Enemy struct {
 
 func CreateInit(count int, aroundLvl int) [10]Enemy {
 	enemies := [10]Enemy{}
-	for i := 0; i <= count; i++ {
+	for i := 0; i < count; i++ {
 		enemies[i] = Enemy{
 			posX:   0, // todo in range
 			posY:   0, // todo in rage
