@@ -24,6 +24,7 @@ const (
 	ScreenWidth             = 1400
 	ScreenHeight            = 1050
 	StatsBottomSize float32 = 35
+	EnemiesCount            = 10
 )
 
 var (
@@ -71,7 +72,7 @@ type Game struct {
 	level        int
 	exp          int
 	expNeeded    int
-	enemies      [10]enemy.Enemy
+	enemies      [EnemiesCount]enemy.Enemy
 }
 
 // Update proceeds the game state.
@@ -191,8 +192,8 @@ func init() {
 }
 
 func main() {
-	// TODO: create enemies
-	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1]}
+	enemies := enemy.CreateInit(EnemiesCount, 1)
+	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FpsTarget)
 	ebiten.SetWindowSize(1400, 1050)
