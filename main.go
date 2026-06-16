@@ -214,13 +214,12 @@ func init() {
 }
 
 func main() {
-	// TODO: check golang struct init???
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: EXP_LVL_LOOKUP[1]}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FPS_TARGET)
 	ebiten.SetWindowSize(1400, 1050)
 	// ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("Your game's title")
+	ebiten.SetWindowTitle("simple mmo")
 
 	// only for development
 	ebiten.SetWindowPosition(2200, 0)
