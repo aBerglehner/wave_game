@@ -177,14 +177,14 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func init() {
-	img, _, err := ebitenutil.NewImageFromFile("assets/protagonist.png")
+	img, _, err := ebitenutil.NewImageFromFile(filepath.Join("assets", "protagonist.png"))
 	if err != nil {
 		panic(err)
 	}
 	playerSheet = img
 
 	// enemies
-	monsters, err := loadMonsterImages("assets/monsters")
+	monsters, err := loadMonsterImages(filepath.Join("assets", "monsters"))
 	if err != nil {
 		panic(err)
 	}
