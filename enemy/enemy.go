@@ -1,3 +1,4 @@
+// Package enemy all about enemies
 package enemy
 
 import (
@@ -9,11 +10,11 @@ import (
 // can all be looked up via -> enemies lvl +1 -> lvl 1 = index 0
 var (
 	// TODO: fill stats
-	enemy_dmg_lookup    [constants.LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemy_health_lookup [constants.LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemy_exp_lookup    [constants.LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemyDmgLookup    [constants.LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemyHealthLookup [constants.LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemyExpLookup    [constants.LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
 	// slower on lower lvl
-	enemy_attack_speed_lookup [constants.LVL_MAX]int = [...]int{0, 5_000, 4_000, 2_000, 1_000, 500}
+	enemyAttackSpeedLookup [constants.LVL_MAX]int = [...]int{0, 5_000, 4_000, 2_000, 1_000, 500}
 )
 
 // TODO: spwan enemies

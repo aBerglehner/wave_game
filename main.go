@@ -20,25 +20,25 @@ import (
 )
 
 const (
-	FPS_TARGET                = 144
-	SCREEN_WIDTH              = 1400
-	SCREEN_HEIGHT             = 1050
-	STATS_BOTTOM_SIZE float32 = 35
+	FpsTarget               = 144
+	ScreenWidth             = 1400
+	ScreenHeight            = 1050
+	StatsBottomSize float32 = 35
 	// TODO: should become 10
 )
 
 var (
-	FPS_AVG      = make([]float64, 0, FPS_TARGET+10)
-	TIME_CURRENT = time.Now()
+	fpsAvg      = make([]float64, 0, FpsTarget+10)
+	timeCurrent = time.Now()
 )
 
 // player -> protagonist
-const PLAYER_RECT_SIZE = 64
+const playerImageSize = 64 // pixels
 
 var (
-	PLAYER_CURRENT_FRAME = 1
-	PLAYER_SHEET         *ebiten.Image
-	PLAYER_FRAMES        = []image.Rectangle{
+	playerCurrentFrame = 1
+	playerSheet        *ebiten.Image
+	playerFrames       = []image.Rectangle{
 		image.Rect(0, 0, 64, 64),     // top-left
 		image.Rect(64, 0, 128, 64),   // top-right
 		image.Rect(0, 64, 64, 128),   // bottom-left
@@ -53,7 +53,7 @@ var (
 )
 
 // can be looked up via -> lvl +1 indexed lvl 1 = index 0
-var EXP_LVL_LOOKUP [constants.LVL_MAX]int = [...]int{
+var expLvlLookup [constants.LvlMax]int = [...]int{
 	100,      // 1
 	1000,     // 2
 	10_000,   // 3
@@ -90,7 +90,7 @@ func (g *Game) Update() error {
 }
 
 func movementController(g *Game) {
-	minDiffToCorner := float32(PLAYER_RECT_SIZE)
+	minDiffToCorner := float32(playerImageSize)
 	// up
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
 		if g.posY > 0 {
@@ -98,15 +98,15 @@ func movementController(g *Game) {
 			// OPTIMIZE:sure not needed every frame ->
 			// idea either if check
 			// or time based check and just set it every n frames to correct position so we get maybe also some transition
-			PLAYER_CURRENT_FRAME = 1
+			playerCurrentFrame = 1
 		}
 		// fmt.Println("s key pressed")
 	}
 	// down
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		if g.posY < SCREEN_HEIGHT-STATS_BOTTOM_SIZE-minDiffToCorner {
+		if g.posY < ScreenHeight-StatsBottomSize-minDiffToCorner {
 			g.posY += 1
-			PLAYER_CURRENT_FRAME = 0
+			playerCurrentFrame = 0
 		}
 		// fmt.Println("d key pressed")
 	}
@@ -114,15 +114,15 @@ func movementController(g *Game) {
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		if g.posX > 0 {
 			g.posX -= 1
-			PLAYER_CURRENT_FRAME = 2
+			playerCurrentFrame = 2
 		}
 		// fmt.Println("a key pressed")
 	}
 	// right
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		if g.posX <= SCREEN_WIDTH-minDiffToCorner {
+		if g.posX <= ScreenWidth-minDiffToCorner {
 			g.posX += 1
-			PLAYER_CURRENT_FRAME = 3
+			playerCurrentFrame = 3
 		}
 		// fmt.Println("f key pressed")
 	}
@@ -135,7 +135,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{30, 100, 50, 1})
 
 	// draw player
-	sprite := PLAYER_SHEET.SubImage(PLAYER_FRAMES[PLAYER_CURRENT_FRAME]).(*ebiten.Image)
+	sprite := playerSheet.SubImage(playerFrames[playerCurrentFrame]).(*ebiten.Image)
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(g.posX), float64(g.posY))
 	screen.DrawImage(sprite, op)
@@ -152,8 +152,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func statsBottom(g *Game, screen *ebiten.Image) {
 	// bottom line
-	vector.StrokeLine(screen, 0, SCREEN_HEIGHT-STATS_BOTTOM_SIZE,
-		SCREEN_WIDTH, SCREEN_HEIGHT-STATS_BOTTOM_SIZE,
+	vector.StrokeLine(screen, 0, ScreenHeight-StatsBottomSize,
+		ScreenWidth, ScreenHeight-StatsBottomSize,
 		10, color.Black, true)
 
 	// stats
@@ -164,7 +164,7 @@ func statsBottom(g *Game, screen *ebiten.Image) {
 			g.health, g.dmg, int(g.healthAbsorb*100), g.level, g.exp, g.expNeeded),
 		basicfont.Face7x13,
 		10,
-		SCREEN_HEIGHT-bottomDistance,
+		ScreenHeight-bottomDistance,
 		color.White,
 	)
 }
@@ -172,7 +172,7 @@ func statsBottom(g *Game, screen *ebiten.Image) {
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return SCREEN_WIDTH, SCREEN_HEIGHT
+	return ScreenWidth, ScreenHeight
 	// return 1024, 768
 }
 
@@ -181,7 +181,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	PLAYER_SHEET = img
+	playerSheet = img
 
 	// enemies
 	monsters, err := loadMonsterImages("assets/monsters")
@@ -193,9 +193,9 @@ func init() {
 
 func main() {
 	// TODO: create enemies
-	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: EXP_LVL_LOOKUP[1]}
+	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1]}
 	// Specify the window size as you like. Here, a doubled size is specified.
-	ebiten.SetTPS(FPS_TARGET)
+	ebiten.SetTPS(FpsTarget)
 	ebiten.SetWindowSize(1400, 1050)
 	// ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("simple mmo")
@@ -213,17 +213,17 @@ func main() {
 
 func logFpsAvg() {
 	fps := ebiten.ActualTPS()
-	FPS_AVG = append(FPS_AVG, fps)
+	fpsAvg = append(fpsAvg, fps)
 
-	if time.Since(TIME_CURRENT) >= time.Second {
+	if time.Since(timeCurrent) >= time.Second {
 		var sum float64 = 0
-		for _, v := range FPS_AVG {
+		for _, v := range fpsAvg {
 			sum += v
 		}
-		log.Printf("Avg FPS last second: %0.2f", (sum / float64(len(FPS_AVG))))
+		log.Printf("Avg FPS last second: %0.2f", (sum / float64(len(fpsAvg))))
 
-		TIME_CURRENT = time.Now()
-		FPS_AVG = make([]float64, 0, FPS_TARGET+10)
+		timeCurrent = time.Now()
+		fpsAvg = make([]float64, 0, FpsTarget+10)
 	}
 }
 
