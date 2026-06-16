@@ -1,4 +1,4 @@
 package constants
 
-// todo
-const LVL_MAX int = 6
+// TODO: should become 10
+const LvlMax int = 6

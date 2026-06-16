@@ -24,7 +24,6 @@ const (
 	ScreenWidth             = 1400
 	ScreenHeight            = 1050
 	StatsBottomSize float32 = 35
-	// TODO: should become 10
 )
 
 var (
