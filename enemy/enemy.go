@@ -31,7 +31,7 @@ type Enemy struct {
 	lastAttack  time.Time
 }
 
-func EnemiesCreateInit(count int, aroundLvl int) [10]Enemy {
+func CreateInit(count int, aroundLvl int) [10]Enemy {
 	enemies := [10]Enemy{}
 	for i := 0; i <= count; i++ {
 		enemies[i] = Enemy{
