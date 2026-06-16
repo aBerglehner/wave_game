@@ -10,6 +10,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/alex/ebiten_tutorial/constants"
+	"github.com/alex/ebiten_tutorial/enemy"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -22,7 +24,7 @@ const (
 	SCREEN_WIDTH              = 1400
 	SCREEN_HEIGHT             = 1050
 	STATS_BOTTOM_SIZE float32 = 35
-	LVL_MAX           int     = 6
+	// TODO: should become 10
 )
 
 var (
@@ -50,14 +52,14 @@ var (
 	MONSTERS []*ebiten.Image
 )
 
-// can be looked up via -> lvl indexed lvl 1 = index 1
-var EXP_LVL_LOOKUP [LVL_MAX]int = [...]int{
-	0,
-	100,
-	1000,
-	10_000,
-	50_000,
-	100_0000,
+// can be looked up via -> lvl +1 indexed lvl 1 = index 0
+var EXP_LVL_LOOKUP [constants.LVL_MAX]int = [...]int{
+	100,      // 1
+	1000,     // 2
+	10_000,   // 3
+	50_000,   // 4
+	100_0000, // 5
+	500_0000, // 6
 }
 
 // Game implements ebiten.Game interface.
@@ -70,31 +72,7 @@ type Game struct {
 	level        int
 	exp          int
 	expNeeded    int
-	enemies      [10]Enemy
-}
-
-// can all be looked up via -> enemies lvl-> lvl 1 = index 1
-var (
-	// TODO: fill stats
-	enemy_dmg_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemy_health_lookup [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemy_exp_lookup    [LVL_MAX]int = [...]int{0, 1, 0, 0, 0, 0}
-	// slower on lower lvl
-	enemy_attack_speed_lookup [LVL_MAX]int = [...]int{0, 5_000, 4_000, 2_000, 1_000, 500}
-)
-
-// TODO: spwan enemies
-type Enemy struct {
-	posX   float32
-	posY   float32
-	alive  bool
-	lvl    int
-	dmg    int
-	health int
-	exp    int
-	// ms
-	attackSpeed int
-	lastAttack  time.Time
+	enemies      [10]enemy.Enemy
 }
 
 // Update proceeds the game state.
@@ -214,6 +192,7 @@ func init() {
 }
 
 func main() {
+	// TODO: create enemies
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: EXP_LVL_LOOKUP[1]}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FPS_TARGET)
