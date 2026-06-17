@@ -5,9 +5,7 @@ import (
 	"image"
 	"image/color"
 	"log"
-	"os"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/alex/ebiten_tutorial/constants"
@@ -184,7 +182,7 @@ func init() {
 	playerSheet = img
 
 	// enemies
-	monsters, err := loadMonsterImages(filepath.Join("assets", "monsters"))
+	monsters, err := enemy.LoadEnemyImages(filepath.Join("assets", "monsters"))
 	if err != nil {
 		panic(err)
 	}
@@ -225,38 +223,4 @@ func logFpsAvg() {
 		timeCurrent = time.Now()
 		fpsAvg = make([]float64, 0, FpsTarget+10)
 	}
-}
-
-func loadMonsterImages(dir string) ([]*ebiten.Image, error) {
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
-	sort.Slice(files, func(i, j int) bool {
-		return files[i].Name() < files[j].Name()
-	})
-
-	var images []*ebiten.Image
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-
-		ext := filepath.Ext(file.Name())
-		if ext != ".png" {
-			continue
-		}
-
-		path := filepath.Join(dir, file.Name())
-
-		img, _, err := ebitenutil.NewImageFromFile(path)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, img)
-	}
-
-	return images, nil
 }

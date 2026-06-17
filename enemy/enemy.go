@@ -2,9 +2,14 @@
 package enemy
 
 import (
+	"os"
+	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/alex/ebiten_tutorial/constants"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 // can all be looked up via -> enemies lvl +1 -> lvl 1 = index 0
@@ -48,4 +53,38 @@ func CreateInit(count int, aroundLvl int) [10]Enemy {
 		}
 	}
 	return enemies
+}
+
+func LoadMonsterImages(dir string) ([]*ebiten.Image, error) {
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name() < files[j].Name()
+	})
+
+	var images []*ebiten.Image
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		ext := filepath.Ext(file.Name())
+		if ext != ".png" {
+			continue
+		}
+
+		path := filepath.Join(dir, file.Name())
+
+		img, _, err := ebitenutil.NewImageFromFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		images = append(images, img)
+	}
+
+	return images, nil
 }
