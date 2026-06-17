@@ -12,6 +12,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+const (
+	EnemiesCount = 10
+)
+
 // 0 indexd -> can all be looked up via -> enemies lvl - 1 -> lvl 1 = index 0
 var (
 	enemyDmgLookup    [constants.LvlMax]int = [...]int{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
@@ -35,9 +39,9 @@ type Enemy struct {
 	lastAttack  time.Time
 }
 
-func CreateInit(count int) []Enemy {
+func CreateInit() []Enemy {
 	enemies := []Enemy{}
-	for i := 0; i < count; i++ {
+	for i := 0; i < EnemiesCount; i++ {
 		aroundLvl := 1
 		if i%2 == 0 {
 			aroundLvl = 2
