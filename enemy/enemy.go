@@ -40,7 +40,7 @@ type Enemy struct {
 }
 
 func CreateInit() []Enemy {
-	enemies := []Enemy{}
+	var enemies []Enemy
 	for i := 0; i < EnemiesCount; i++ {
 		aroundLvl := 1
 		if i%2 == 0 {
