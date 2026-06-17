@@ -74,7 +74,7 @@ type Game struct {
 	level        int
 	exp          int
 	expNeeded    int
-	enemies      [EnemiesCount]enemy.Enemy
+	enemies      []enemy.Enemy
 }
 
 // Update proceeds the game state.

@@ -35,15 +35,15 @@ type Enemy struct {
 	lastAttack  time.Time
 }
 
-func CreateInit(count int) [10]Enemy {
-	enemies := [10]Enemy{}
+func CreateInit(count int) []Enemy {
+	enemies := []Enemy{}
 	for i := 0; i < count; i++ {
 		aroundLvl := 1
 		if i%2 == 0 {
 			aroundLvl = 2
 		}
 
-		enemies[i] = Enemy{
+		enemies = append(enemies, Enemy{
 			posX:   0, // todo in range
 			posY:   0, // todo in rage
 			alive:  true,
@@ -54,7 +54,7 @@ func CreateInit(count int) [10]Enemy {
 			// ms
 			attackSpeed: enemyAttackSpeedLookup[0],
 			lastAttack:  time.Now(),
-		}
+		})
 	}
 	return enemies
 }
