@@ -55,7 +55,7 @@ func CreateInit(count int, aroundLvl int) [10]Enemy {
 	return enemies
 }
 
-func LoadMonsterImages(dir string) ([]*ebiten.Image, error) {
+func LoadEnemyImages(dir string) ([]*ebiten.Image, error) {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
