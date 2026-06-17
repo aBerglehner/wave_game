@@ -25,8 +25,10 @@ const (
 )
 
 var (
-	fpsAvg      = make([]float64, 0, FpsTarget+10)
-	timeCurrent = time.Now()
+	fpsAvg                   = make([]float64, 0, FpsTarget+10)
+	fpsTime                  = time.Now()
+	movementTimePrev         = time.Now()
+	movementSpeed    float32 = 100
 )
 
 // player -> protagonist
@@ -91,11 +93,16 @@ func (g *Game) Update() error {
 }
 
 func movementController(g *Game) {
+	cur := time.Now()
+	deltaTime := cur.Sub(movementTimePrev)
+	movementTimePrev = cur
+	var moveDistance float32 = movementSpeed * float32(deltaTime.Seconds())
+
 	minDiffToCorner := float32(playerImageSize)
 	// up
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
 		if g.posY > 0 {
-			g.posY -= 1
+			g.posY -= moveDistance
 			// OPTIMIZE:sure not needed every frame ->
 			// idea either if check
 			// or time based check and just set it every n frames to correct position so we get maybe also some transition
@@ -106,7 +113,7 @@ func movementController(g *Game) {
 	// down
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
 		if g.posY < ScreenHeight-StatsBottomSize-minDiffToCorner {
-			g.posY += 1
+			g.posY += moveDistance
 			playerCurrentFrame = 0
 		}
 		// fmt.Println("d key pressed")
@@ -114,7 +121,7 @@ func movementController(g *Game) {
 	// left
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		if g.posX > 0 {
-			g.posX -= 1
+			g.posX -= moveDistance
 			playerCurrentFrame = 2
 		}
 		// fmt.Println("a key pressed")
@@ -122,7 +129,7 @@ func movementController(g *Game) {
 	// right
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
 		if g.posX <= ScreenWidth-minDiffToCorner {
-			g.posX += 1
+			g.posX += moveDistance
 			playerCurrentFrame = 3
 		}
 		// fmt.Println("f key pressed")
@@ -216,14 +223,14 @@ func logFpsAvg() {
 	fps := ebiten.ActualTPS()
 	fpsAvg = append(fpsAvg, fps)
 
-	if time.Since(timeCurrent) >= time.Second {
+	if time.Since(fpsTime) >= time.Second {
 		var sum float64 = 0
 		for _, v := range fpsAvg {
 			sum += v
 		}
 		log.Printf("Avg FPS last second: %0.2f", (sum / float64(len(fpsAvg))))
 
-		timeCurrent = time.Now()
+		fpsTime = time.Now()
 		fpsAvg = make([]float64, 0, FpsTarget+10)
 	}
 }

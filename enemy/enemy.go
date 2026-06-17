@@ -22,7 +22,7 @@ var (
 	enemyHealthLookup [constants.LvlMax]int = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
 	enemyExpLookup    [constants.LvlMax]int = [...]int{1, 10, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000, 128_000}
 	// slower on lower lvl
-	enemyAttackSpeedLookup [constants.LvlMax]int = [...]int{1_000, 800, 750, 650, 600, 550, 500, 450, 400, 300}
+	enemyAttackSpeedLookup [constants.LvlMax]int = [...]int{1_500, 1_000, 850, 700, 600, 550, 500, 400, 350, 200}
 )
 
 // TODO: spwan enemies
