@@ -12,14 +12,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-// can all be looked up via -> enemies lvl +1 -> lvl 1 = index 0
+// 0 indexd -> can all be looked up via -> enemies lvl - 1 -> lvl 1 = index 0
 var (
-	// TODO: fill stats
-	enemyDmgLookup    [constants.LvlMax]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemyHealthLookup [constants.LvlMax]int = [...]int{0, 1, 0, 0, 0, 0}
-	enemyExpLookup    [constants.LvlMax]int = [...]int{0, 1, 0, 0, 0, 0}
+	enemyDmgLookup    [constants.LvlMax]int = [...]int{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
+	enemyHealthLookup [constants.LvlMax]int = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
+	enemyExpLookup    [constants.LvlMax]int = [...]int{1, 10, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000, 128_000}
 	// slower on lower lvl
-	enemyAttackSpeedLookup [constants.LvlMax]int = [...]int{0, 5_000, 4_000, 2_000, 1_000, 500}
+	enemyAttackSpeedLookup [constants.LvlMax]int = [...]int{1_000, 800, 750, 650, 600, 550, 500, 450, 400, 300}
 )
 
 // TODO: spwan enemies
@@ -36,19 +35,24 @@ type Enemy struct {
 	lastAttack  time.Time
 }
 
-func CreateInit(count int, aroundLvl int) [10]Enemy {
+func CreateInit(count int) [10]Enemy {
 	enemies := [10]Enemy{}
 	for i := 0; i < count; i++ {
+		aroundLvl := 1
+		if i%2 == 0 {
+			aroundLvl = 2
+		}
+
 		enemies[i] = Enemy{
 			posX:   0, // todo in range
 			posY:   0, // todo in rage
 			alive:  true,
-			lvl:    aroundLvl, // todo around
-			dmg:    1,         // todo
-			health: 100,       // todo
-			exp:    1,         // todo
+			lvl:    aroundLvl,
+			dmg:    enemyDmgLookup[0],
+			health: enemyHealthLookup[0],
+			exp:    enemyExpLookup[0],
 			// ms
-			attackSpeed: 5000, // todo
+			attackSpeed: enemyAttackSpeedLookup[0],
 			lastAttack:  time.Now(),
 		}
 	}

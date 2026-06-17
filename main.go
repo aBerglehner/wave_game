@@ -47,17 +47,21 @@ var (
 // enemies
 var (
 	// 0 indexed
-	MONSTERS []*ebiten.Image
+	enemy_images []*ebiten.Image
 )
 
-// can be looked up via -> lvl +1 indexed lvl 1 = index 0
+// 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
 var expLvlLookup [constants.LvlMax]int = [...]int{
-	100,      // 1
-	1000,     // 2
-	10_000,   // 3
-	50_000,   // 4
-	100_0000, // 5
-	500_0000, // 6
+	100,         // 1
+	1000,        // 2
+	10_000,      // 3
+	50_000,      // 4
+	100_0000,    // 5
+	500_0000,    // 6
+	1_000_0000,  // 7
+	2_000_0000,  // 8
+	5_000_0000,  // 9
+	10_000_0000, // 10
 }
 
 // Game implements ebiten.Game interface.
@@ -142,7 +146,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op2 := &ebiten.DrawImageOptions{}
 	op2.GeoM.Scale(0.35, 0.35)
 	op2.GeoM.Translate(100, 100)
-	screen.DrawImage(MONSTERS[1], op2)
+	screen.DrawImage(enemy_images[1], op2)
 	// TODO:draw all g.enemies
 
 	statsBottom(g, screen)
@@ -186,11 +190,11 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	MONSTERS = monsters
+	enemy_images = monsters
 }
 
 func main() {
-	enemies := enemy.CreateInit(EnemiesCount, 1)
+	enemies := enemy.CreateInit(EnemiesCount)
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FpsTarget)
