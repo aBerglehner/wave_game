@@ -1,5 +1,9 @@
 package main
 
+//ideas:
+//-able to jump on every lvl (so I can check bugs fast)
+//-enemies have a certain move radius and extra a certain attack range
+
 import (
 	"fmt"
 	"image"
