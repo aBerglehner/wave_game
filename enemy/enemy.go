@@ -2,6 +2,7 @@
 package enemy
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 	"sort"
@@ -27,19 +28,19 @@ var (
 
 // TODO: spwan enemies
 type Enemy struct {
-	posX   float32
-	posY   float32
-	alive  bool
-	lvl    int
-	dmg    int
-	health int
-	exp    int
+	PosX   float32
+	PosY   float32
+	Alive  bool
+	Lvl    int
+	Dmg    int
+	Health int
+	Exp    int
 	// ms
-	attackSpeed int
-	lastAttack  time.Time
+	AttackSpeed int
+	LastAttack  time.Time
 }
 
-func CreateInit() []Enemy {
+func CreateInit(maxWidth float32, maxHeight float32) []Enemy {
 	var enemies []Enemy
 	for i := 0; i < EnemiesCount; i++ {
 		aroundLvl := 1
@@ -47,17 +48,19 @@ func CreateInit() []Enemy {
 			aroundLvl = 2
 		}
 
+		randomWidth := rand.Float32()*(maxWidth-1) + 1
+		randomHeight := rand.Float32()*(maxHeight-1) + 1
 		enemies = append(enemies, Enemy{
-			posX:   0, // todo in range
-			posY:   0, // todo in rage
-			alive:  true,
-			lvl:    aroundLvl,
-			dmg:    enemyDmgLookup[0],
-			health: enemyHealthLookup[0],
-			exp:    enemyExpLookup[0],
+			PosX:   randomWidth,
+			PosY:   randomHeight,
+			Alive:  true,
+			Lvl:    aroundLvl,
+			Dmg:    enemyDmgLookup[0],
+			Health: enemyHealthLookup[0],
+			Exp:    enemyExpLookup[0],
 			// ms
-			attackSpeed: enemyAttackSpeedLookup[0],
-			lastAttack:  time.Now(),
+			AttackSpeed: enemyAttackSpeedLookup[0],
+			LastAttack:  time.Now(),
 		})
 	}
 	return enemies

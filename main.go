@@ -18,10 +18,12 @@ import (
 )
 
 const (
-	FpsTarget               = 144
-	ScreenWidth             = 1400
-	ScreenHeight            = 1050
-	StatsBottomSize float32 = 35
+	FpsTarget                     = 144
+	ScreenWidth                   = 1400
+	ScreenHeight                  = 1050
+	MaxUsableScreenHeight         = ScreenHeight - int(StatsBottomSize) - StatsLineBottomSize
+	StatsBottomSize       float32 = 35
+	StatsLineBottomSize           = 10
 )
 
 var (
@@ -88,7 +90,7 @@ func (g *Game) Update() error {
 	// TODO:load it to random postion that is valid
 	// TODO:load only +1 -1 to own level monsters
 
-	go logFpsAvg()
+	go logFpsAvg(g)
 	return nil
 }
 
@@ -148,21 +150,28 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(g.posX), float64(g.posY))
 	screen.DrawImage(sprite, op)
 
-	// enemies
-	op2 := &ebiten.DrawImageOptions{}
-	op2.GeoM.Scale(0.35, 0.35)
-	op2.GeoM.Translate(100, 100)
-	screen.DrawImage(enemy_images[1], op2)
-	// TODO:draw all g.enemies
+	// draw enemies
+	drawEnemies(g, screen)
 
 	statsBottom(g, screen)
+}
+
+func drawEnemies(g *Game, screen *ebiten.Image) {
+	for i := range g.enemies {
+		enemy := g.enemies[i]
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Scale(0.35, 0.35)
+		op.GeoM.Translate(float64(enemy.PosX), float64(enemy.PosY))
+		screen.DrawImage(enemy_images[i], op)
+		// TODO:draw all g.enemies
+	}
 }
 
 func statsBottom(g *Game, screen *ebiten.Image) {
 	// bottom line
 	vector.StrokeLine(screen, 0, ScreenHeight-StatsBottomSize,
 		ScreenWidth, ScreenHeight-StatsBottomSize,
-		10, color.Black, true)
+		StatsLineBottomSize, color.Black, true)
 
 	// stats
 	var bottomDistance int = 10
@@ -200,7 +209,7 @@ func init() {
 }
 
 func main() {
-	enemies := enemy.CreateInit()
+	enemies := enemy.CreateInit(float32(ScreenWidth), float32(MaxUsableScreenHeight-40))
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FpsTarget)
@@ -219,11 +228,13 @@ func main() {
 	}
 }
 
-func logFpsAvg() {
+// TODO: remove g *Game after debugging again
+func logFpsAvg(g *Game) {
 	fps := ebiten.ActualTPS()
 	fpsAvg = append(fpsAvg, fps)
 
 	if time.Since(fpsTime) >= time.Second {
+		fmt.Printf("posX: %v posY: %v\n", g.posX, g.posY)
 		var sum float64 = 0
 		for _, v := range fpsAvg {
 			sum += v
