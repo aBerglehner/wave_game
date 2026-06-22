@@ -206,7 +206,7 @@ func main() {
 	ebiten.SetTPS(FpsTarget)
 	ebiten.SetWindowSize(1400, 1050)
 	// ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("simple mmo")
+	ebiten.SetWindowTitle("wave game")
 
 	// only for development
 	ebiten.SetWindowPosition(2200, 0)
