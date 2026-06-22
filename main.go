@@ -162,7 +162,7 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Scale(0.35, 0.35)
 		op.GeoM.Translate(float64(enemy.PosX), float64(enemy.PosY))
-		screen.DrawImage(enemy_images[i], op)
+		screen.DrawImage(enemy_images[enemy.Lvl], op)
 		// TODO:draw all g.enemies
 	}
 }
@@ -209,7 +209,7 @@ func init() {
 }
 
 func main() {
-	enemies := enemy.CreateInit(float32(ScreenWidth), float32(MaxUsableScreenHeight-40))
+	enemies := enemy.CreateInit(float32(ScreenWidth-50), float32(MaxUsableScreenHeight-50))
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FpsTarget)

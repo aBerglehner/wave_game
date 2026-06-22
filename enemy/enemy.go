@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	EnemiesCount = 10
+	EnemiesCount = 20
 )
 
 // 0 indexd -> can all be looked up via -> enemies lvl - 1 -> lvl 1 = index 0
