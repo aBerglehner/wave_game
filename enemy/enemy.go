@@ -28,8 +28,8 @@ var (
 
 // TODO: spwan enemies
 type Enemy struct {
-	PosX   float32
-	PosY   float32
+	PosX   float64
+	PosY   float64
 	Alive  bool
 	Lvl    int
 	Dmg    int
@@ -38,9 +38,26 @@ type Enemy struct {
 	// ms
 	AttackSpeed int
 	LastAttack  time.Time
+	// TODO: maybe delete
+	LastMove time.Time
 }
 
-func CreateInit(maxWidth float32, maxHeight float32) []Enemy {
+func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64) {
+	var randomizer float64 = 1
+	if rand.Intn(2) == 0 {
+		randomizer = -1
+	}
+	newPosX := e.PosX + (rand.Float64()*moveDistance)*randomizer
+	if newPosX < maxWidth {
+		e.PosX = newPosX
+	}
+	newPosY := e.PosY + (rand.Float64()*moveDistance)*randomizer
+	if newPosY < maxHeight {
+		e.PosY = newPosY
+	}
+}
+
+func CreateInit(maxWidth float64, maxHeight float64) []Enemy {
 	var enemies []Enemy
 	for i := 0; i < EnemiesCount; i++ {
 		aroundLvl := 1
@@ -48,8 +65,8 @@ func CreateInit(maxWidth float32, maxHeight float32) []Enemy {
 			aroundLvl = 2
 		}
 
-		randomWidth := rand.Float32()*(maxWidth-1) + 1
-		randomHeight := rand.Float32()*(maxHeight-1) + 1
+		randomWidth := rand.Float64()*(maxWidth-1) + 1
+		randomHeight := rand.Float64()*(maxHeight-1) + 1
 		enemies = append(enemies, Enemy{
 			PosX:   randomWidth,
 			PosY:   randomHeight,
@@ -61,6 +78,7 @@ func CreateInit(maxWidth float32, maxHeight float32) []Enemy {
 			// ms
 			AttackSpeed: enemyAttackSpeedLookup[0],
 			LastAttack:  time.Now(),
+			LastMove:    time.Now(),
 		})
 	}
 	return enemies

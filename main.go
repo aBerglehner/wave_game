@@ -24,9 +24,11 @@ import (
 const (
 	FpsTarget                     = 144
 	ScreenWidth                   = 1400
+	ScreenWidthMaxSpawn           = float64(ScreenWidth - 50)
 	ScreenHeight                  = 1050
+	ScreenHeightMaxSpawn          = float64(MaxUsableScreenHeight - 50)
 	MaxUsableScreenHeight         = ScreenHeight - int(StatsBottomSize) - StatsLineBottomSize
-	StatsBottomSize       float32 = 35
+	StatsBottomSize       float64 = 35
 	StatsLineBottomSize           = 10
 )
 
@@ -34,7 +36,7 @@ var (
 	fpsAvg                   = make([]float64, 0, FpsTarget+10)
 	fpsTime                  = time.Now()
 	movementTimePrev         = time.Now()
-	movementSpeed    float32 = 100
+	movementSpeed    float64 = 100
 )
 
 // player -> protagonist
@@ -73,8 +75,8 @@ var expLvlLookup [constants.LvlMax]int = [...]int{
 
 // Game implements ebiten.Game interface.
 type Game struct {
-	posX         float32
-	posY         float32
+	posX         float64
+	posY         float64
 	health       int
 	dmg          float32
 	healthAbsorb float32
@@ -88,23 +90,27 @@ type Game struct {
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
 	// Write your game's logical update.
-	movementController(g)
+	moveDistance := movementController(g)
 
 	// TODO:load check which monster is alive -> otherwise spawn a new one
 	// TODO:load it to random postion that is valid
 	// TODO:load only +1 -1 to own level monsters
 
-	go logFpsAvg(g)
+	for i := range g.enemies {
+		g.enemies[i].Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance)
+	}
+
+	go logFpsAvg()
 	return nil
 }
 
-func movementController(g *Game) {
+func movementController(g *Game) (moveDistance float64) {
 	cur := time.Now()
 	deltaTime := cur.Sub(movementTimePrev)
 	movementTimePrev = cur
-	var moveDistance float32 = movementSpeed * float32(deltaTime.Seconds())
+	moveDistance = movementSpeed * float64(deltaTime.Seconds())
 
-	minDiffToCorner := float32(playerImageSize)
+	minDiffToCorner := float64(playerImageSize)
 	// up
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
 		if g.posY > 0 {
@@ -140,6 +146,7 @@ func movementController(g *Game) {
 		}
 		// fmt.Println("f key pressed")
 	}
+	return moveDistance
 }
 
 // Draw draws the game screen.
@@ -151,7 +158,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// draw player
 	sprite := playerSheet.SubImage(playerFrames[playerCurrentFrame]).(*ebiten.Image)
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(g.posX), float64(g.posY))
+	op.GeoM.Translate(g.posX, g.posY)
 	screen.DrawImage(sprite, op)
 
 	// draw enemies
@@ -165,7 +172,7 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 		enemy := g.enemies[i]
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Scale(0.35, 0.35)
-		op.GeoM.Translate(float64(enemy.PosX), float64(enemy.PosY))
+		op.GeoM.Translate(enemy.PosX, enemy.PosY)
 		screen.DrawImage(enemy_images[enemy.Lvl], op)
 		// TODO:draw all g.enemies
 	}
@@ -173,8 +180,8 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 
 func statsBottom(g *Game, screen *ebiten.Image) {
 	// bottom line
-	vector.StrokeLine(screen, 0, ScreenHeight-StatsBottomSize,
-		ScreenWidth, ScreenHeight-StatsBottomSize,
+	vector.StrokeLine(screen, 0, float32(ScreenHeight-StatsBottomSize),
+		ScreenWidth, float32(ScreenHeight-StatsBottomSize),
 		StatsLineBottomSize, color.Black, true)
 
 	// stats
@@ -213,7 +220,7 @@ func init() {
 }
 
 func main() {
-	enemies := enemy.CreateInit(float32(ScreenWidth-50), float32(MaxUsableScreenHeight-50))
+	enemies := enemy.CreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
 	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FpsTarget)
@@ -232,13 +239,11 @@ func main() {
 	}
 }
 
-// TODO: remove g *Game after debugging again
-func logFpsAvg(g *Game) {
+func logFpsAvg() {
 	fps := ebiten.ActualTPS()
 	fpsAvg = append(fpsAvg, fps)
 
 	if time.Since(fpsTime) >= time.Second {
-		fmt.Printf("posX: %v posY: %v\n", g.posX, g.posY)
 		var sum float64 = 0
 		for _, v := range fpsAvg {
 			sum += v
