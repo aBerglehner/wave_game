@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	EnemiesCount = 20
+	EnemiesCount = 30
 )
 
 // 0 indexd -> can all be looked up via -> enemies lvl - 1 -> lvl 1 = index 0
@@ -47,8 +47,8 @@ type Enemy struct {
 
 func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64, fps int) {
 	// fps*Seconds to reset the direction
-	var directionResetTime int = fps * 2
-	moveDistance = moveDistance / 2
+	var directionResetTime int = fps * 5
+	moveDistance = moveDistance / 4
 
 	// x part
 	var xRanomizer float64 = 1
