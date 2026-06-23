@@ -28,32 +28,74 @@ var (
 
 // TODO: spwan enemies
 type Enemy struct {
-	PosX   float64
-	PosY   float64
-	Alive  bool
-	Lvl    int
-	Dmg    int
-	Health int
-	Exp    int
+	// this is just a counter so it will always walk a given ticks into one direction
+	// when positiv the walk will be positiv and vice versa
+	PosXMovingDirection int
+	PosYMovingDirection int
+	PosX                float64
+	PosY                float64
+	Alive               bool
+	Lvl                 int
+	Dmg                 int
+	Health              int
+	Exp                 int
 	// ms
 	AttackSpeed int
 	LastAttack  time.Time
 	// TODO: maybe delete
-	LastMove time.Time
 }
 
-func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64) {
-	var randomizer float64 = 1
-	if rand.Intn(2) == 0 {
-		randomizer = -1
+func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64, fps int) {
+	// fps*Seconds to reset the direction
+	var directionResetTime int = fps * 2
+	moveDistance = moveDistance / 2
+
+	// x part
+	var xRanomizer float64 = 1
+	if e.PosXMovingDirection == 0 {
+		e.PosXMovingDirection = 1
+		if rand.Intn(2) == 0 {
+			e.PosXMovingDirection = -1
+		}
+	} else if e.PosXMovingDirection < 0 {
+		xRanomizer = -1
+		e.PosXMovingDirection -= 1
+	} else {
+		e.PosXMovingDirection += 1
 	}
-	newPosX := e.PosX + (rand.Float64()*moveDistance)*randomizer
-	if newPosX < maxWidth {
+
+	newPosX := e.PosX + (rand.Float64()*moveDistance)*xRanomizer
+	if newPosX < maxWidth && newPosX > 0 {
 		e.PosX = newPosX
 	}
-	newPosY := e.PosY + (rand.Float64()*moveDistance)*randomizer
-	if newPosY < maxHeight {
+
+	// reset after walked given time in certain direction
+	if e.PosXMovingDirection == directionResetTime || e.PosXMovingDirection == -directionResetTime {
+		e.PosXMovingDirection = 0
+	}
+
+	// y part
+	var yRanomizer float64 = 1
+	if e.PosYMovingDirection == 0 {
+		e.PosYMovingDirection = 1
+		if rand.Intn(2) == 0 {
+			e.PosYMovingDirection = -1
+		}
+	} else if e.PosYMovingDirection < 0 {
+		yRanomizer = -1
+		e.PosYMovingDirection -= 1
+	} else {
+		e.PosYMovingDirection += 1
+	}
+
+	newPosY := e.PosY + (rand.Float64()*moveDistance)*yRanomizer
+	if newPosY < maxHeight && newPosY > 0 {
 		e.PosY = newPosY
+	}
+
+	// reset after walked given time in certain direction
+	if e.PosYMovingDirection == directionResetTime || e.PosYMovingDirection == -directionResetTime {
+		e.PosYMovingDirection = 0
 	}
 }
 
@@ -68,17 +110,18 @@ func CreateInit(maxWidth float64, maxHeight float64) []Enemy {
 		randomWidth := rand.Float64()*(maxWidth-1) + 1
 		randomHeight := rand.Float64()*(maxHeight-1) + 1
 		enemies = append(enemies, Enemy{
-			PosX:   randomWidth,
-			PosY:   randomHeight,
-			Alive:  true,
-			Lvl:    aroundLvl,
-			Dmg:    enemyDmgLookup[0],
-			Health: enemyHealthLookup[0],
-			Exp:    enemyExpLookup[0],
+			PosXMovingDirection: 0,
+			PosYMovingDirection: 0,
+			PosX:                randomWidth,
+			PosY:                randomHeight,
+			Alive:               true,
+			Lvl:                 aroundLvl,
+			Dmg:                 enemyDmgLookup[0],
+			Health:              enemyHealthLookup[0],
+			Exp:                 enemyExpLookup[0],
 			// ms
 			AttackSpeed: enemyAttackSpeedLookup[0],
 			LastAttack:  time.Now(),
-			LastMove:    time.Now(),
 		})
 	}
 	return enemies

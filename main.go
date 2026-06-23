@@ -97,7 +97,7 @@ func (g *Game) Update() error {
 	// TODO:load only +1 -1 to own level monsters
 
 	for i := range g.enemies {
-		g.enemies[i].Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance)
+		g.enemies[i].Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
 	}
 
 	go logFpsAvg()
