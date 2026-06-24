@@ -47,6 +47,7 @@ type Enemy struct {
 func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64, fps int) {
 	// fps*Seconds to reset the direction
 	var directionResetTime int = fps * 5
+	// don't let the enemies move as fast as the player
 	moveDistance = moveDistance / 4
 
 	// x part
