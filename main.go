@@ -92,8 +92,27 @@ func (g *Game) Update() error {
 	// TODO:load it to random postion that is valid
 	// TODO:load only +1 -1 to own level monsters
 
+	attackRange2 := constants.AttackRange * constants.AttackRange
+	playerPosX := g.posX
+	playerPosY := g.posY
 	for i := range g.enemies {
-		g.enemies[i].Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
+		enemy := &g.enemies[i]
+		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
+
+		posXDiff := enemy.PosX - playerPosX
+		posYDiff := enemy.PosY - playerPosY
+		if posXDiff*posXDiff+posYDiff*posYDiff <= attackRange2 {
+			// fmt.Printf("\"in range\": %v\n", "in range")
+			timeNow := time.Now()
+			deltaLastAttackTime := timeNow.Sub(enemy.LastAttack)
+			if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
+				enemy.LastAttack = timeNow
+
+				g.health -= enemy.Dmg
+				fmt.Printf("attack happend\n")
+			}
+		}
+
 	}
 
 	go logFpsAvg()
