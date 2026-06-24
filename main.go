@@ -155,16 +155,18 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Write your game's rendering.
 	screen.Fill(color.RGBA{30, 100, 50, 1})
 
-	// draw enemies
 	drawEnemies(g, screen)
+	// we draw player after enemies so the image is on top
+	drawPlayer(g, screen)
 
-	// draw player
+	statsBottom(g, screen)
+}
+
+func drawPlayer(g *Game, screen *ebiten.Image) {
 	sprite := playerSheet.SubImage(playerFrames[playerCurrentFrame]).(*ebiten.Image)
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(g.posX, g.posY)
 	screen.DrawImage(sprite, op)
-
-	statsBottom(g, screen)
 }
 
 func drawEnemies(g *Game, screen *ebiten.Image) {
@@ -174,7 +176,6 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 		op.GeoM.Scale(0.35, 0.35)
 		op.GeoM.Translate(enemy.PosX, enemy.PosY)
 		screen.DrawImage(enemy_images[enemy.Lvl], op)
-		// TODO:draw all g.enemies
 	}
 }
 
