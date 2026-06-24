@@ -216,9 +216,13 @@ func init() {
 	enemy_images = monsters
 }
 
-func main() {
+func gameInit() *Game {
 	enemies := enemy.CreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
-	game := &Game{posX: 10, posY: 10, health: 99, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
+	return &Game{posX: 10, posY: 10, health: 100, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
+}
+
+func main() {
+	game := gameInit()
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetTPS(FpsTarget)
 	ebiten.SetWindowSize(1400, 1050)

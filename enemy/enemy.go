@@ -42,7 +42,6 @@ type Enemy struct {
 	// ms
 	AttackSpeed int
 	LastAttack  time.Time
-	// TODO: maybe delete
 }
 
 func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64, fps int) {
