@@ -99,24 +99,28 @@ func (g *Game) Update() error {
 		enemy := &g.enemies[i]
 		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
 
-		posXDiff := enemy.PosX - playerPosX
-		posYDiff := enemy.PosY - playerPosY
-		if posXDiff*posXDiff+posYDiff*posYDiff <= attackRange2 {
-			// fmt.Printf("\"in range\": %v\n", "in range")
-			timeNow := time.Now()
-			deltaLastAttackTime := timeNow.Sub(enemy.LastAttack)
-			if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
-				enemy.LastAttack = timeNow
-
-				g.health -= enemy.Dmg
-				fmt.Printf("attack happend\n")
-			}
-		}
+		attack(enemy, g, playerPosX, playerPosY, attackRange2)
 
 	}
 
 	go logFpsAvg()
 	return nil
+}
+
+func attack(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64, attackRange2 float64) {
+	posXDiff := enemy.PosX - playerPosX
+	posYDiff := enemy.PosY - playerPosY
+	if posXDiff*posXDiff+posYDiff*posYDiff <= attackRange2 {
+		// fmt.Printf("\"in range\": %v\n", "in range")
+		timeNow := time.Now()
+		deltaLastAttackTime := timeNow.Sub(enemy.LastAttack)
+		if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
+			enemy.LastAttack = timeNow
+
+			g.health -= enemy.Dmg
+			fmt.Printf("attack happend\n")
+		}
+	}
 }
 
 func movementController(g *Game) (moveDistance float64) {
