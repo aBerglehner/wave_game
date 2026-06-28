@@ -10,6 +10,7 @@ import (
 
 	"github.com/alex/ebiten_tutorial/constants"
 	"github.com/alex/ebiten_tutorial/enemy"
+	enemyI "github.com/alex/ebiten_tutorial/enemy"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -79,7 +80,7 @@ type Game struct {
 	level        int
 	exp          int
 	expNeeded    int
-	enemies      []enemy.Enemy
+	enemies      []enemyI.Enemy
 }
 
 // Update proceeds the game state.
@@ -186,6 +187,7 @@ func drawPlayer(g *Game, screen *ebiten.Image) {
 	screen.DrawImage(sprite, op)
 }
 
+// TODO: they need a health bar (idea red line above their head should be enough)
 func drawEnemies(g *Game, screen *ebiten.Image) {
 	for i := range g.enemies {
 		enemy := g.enemies[i]
@@ -193,6 +195,18 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 		op.GeoM.Scale(0.35, 0.35)
 		op.GeoM.Translate(enemy.PosX, enemy.PosY)
 		screen.DrawImage(enemy_images[enemy.Lvl], op)
+
+		// health bar
+		// should be a percentage of 40. 40 == 100%
+		enemyMaxHealth := enemyI.EnemyHealthLookup[enemy.Lvl-1]
+		enemyHealthPercentage := enemy.Health * 100 / enemyMaxHealth
+		var lifeVectorMaxWidth float32 = 40
+		var life float32 = lifeVectorMaxWidth * float32(enemyHealthPercentage) / 100
+
+		var lifeHeight float32 = 6
+		var healthBarPosY float32 = float32(enemy.PosY) - (lifeHeight + 1)
+		var healthBarPosX float32 = float32(enemy.PosX)
+		vector.FillRect(screen, healthBarPosX, healthBarPosY, life, lifeHeight, color.RGBA{150, 0, 0, 150}, false)
 	}
 }
 

@@ -20,7 +20,7 @@ const (
 // 0 indexd -> can all be looked up via -> enemies lvl - 1 -> lvl 1 = index 0
 var (
 	enemyDmgLookup    [constants.LvlMax]int = [...]int{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
-	enemyHealthLookup [constants.LvlMax]int = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
+	EnemyHealthLookup [constants.LvlMax]int = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
 	enemyExpLookup    [constants.LvlMax]int = [...]int{1, 10, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000, 128_000}
 	// slower on lower lvl
 	enemyAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{1_500, 1_000, 850, 700, 600, 550, 500, 400, 350, 200}
@@ -116,11 +116,11 @@ func CreateInit(maxWidth float64, maxHeight float64) []Enemy {
 			PosY:                randomHeight,
 			Alive:               true,
 			Lvl:                 aroundLvl,
-			Dmg:                 enemyDmgLookup[0],
-			Health:              enemyHealthLookup[0],
-			Exp:                 enemyExpLookup[0],
+			Dmg:                 enemyDmgLookup[aroundLvl-1],
+			Health:              EnemyHealthLookup[aroundLvl-1],
+			Exp:                 enemyExpLookup[aroundLvl-1],
 			// ms
-			AttackSpeed: enemyAttackSpeedLookup[0],
+			AttackSpeed: enemyAttackSpeedLookup[aroundLvl-1],
 			LastAttack:  time.Now(),
 		})
 	}
