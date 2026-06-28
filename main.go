@@ -72,15 +72,16 @@ var expLvlLookup [constants.LvlMax]int = [...]int{
 
 // Game implements ebiten.Game interface.
 type Game struct {
-	posX         float64
-	posY         float64
-	health       int
-	dmg          float32
-	healthAbsorb float32
-	level        int
-	exp          int
-	expNeeded    int
-	enemies      []enemyI.Enemy
+	posX            float64
+	posY            float64
+	health          int
+	dmg             float32
+	healthAbsorb    float32
+	level           int
+	exp             int
+	expNeeded       int
+	enemies         []enemyI.Enemy
+	damageTakenTime time.Time
 }
 
 // Update proceeds the game state.
@@ -117,6 +118,7 @@ func attack(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64,
 		if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
 			enemy.LastAttack = timeNow
 
+			g.damageTakenTime = time.Now()
 			g.health -= enemy.Dmg
 		}
 	}
@@ -185,9 +187,37 @@ func drawPlayer(g *Game, screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(g.posX, g.posY)
 	screen.DrawImage(sprite, op)
+
+	drawPlayerDmgTaken(g, screen)
 }
 
-// TODO: they need a health bar (idea red line above their head should be enough)
+func drawPlayerDmgTaken(g *Game, screen *ebiten.Image) {
+	var r float32 = 20
+	// TODO: adjust this to player movement???
+	var cx float32 = float32(g.posX) + 25
+	var cy float32 = float32(g.posY) + 25
+	var strokeWidth float32 = 0
+
+	timeNow := time.Now()
+	deltaDamageTakenTime := timeNow.Sub(g.damageTakenTime).Milliseconds()
+	if deltaDamageTakenTime < 45 {
+		strokeWidth = 1
+	} else if deltaDamageTakenTime < 90 {
+		strokeWidth = 3
+		r += strokeWidth
+	} else if deltaDamageTakenTime < 135 {
+		strokeWidth = 6
+		r += strokeWidth
+	} else if deltaDamageTakenTime < 180 {
+		strokeWidth = 9
+		r += strokeWidth
+	}
+
+	if deltaDamageTakenTime < 180 {
+		vector.StrokeCircle(screen, cx, cy, r, strokeWidth, color.RGBA{150, 0, 0, 150}, false)
+	}
+}
+
 func drawEnemies(g *Game, screen *ebiten.Image) {
 	for i := range g.enemies {
 		enemy := g.enemies[i]
