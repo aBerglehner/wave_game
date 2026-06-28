@@ -192,11 +192,24 @@ func drawPlayer(g *Game, screen *ebiten.Image) {
 }
 
 func drawPlayerDmgTaken(g *Game, screen *ebiten.Image) {
-	var r float32 = 20
-	// TODO: adjust this to player movement???
-	var cx float32 = float32(g.posX) + 25
-	var cy float32 = float32(g.posY) + 25
+	var r float32 = 21
 	var strokeWidth float32 = 0
+
+	var cx float32 = 0
+	var cy float32 = 0
+	if playerCurrentFrame == 3 { // right
+		cx = float32(g.posX) + 25
+		cy = float32(g.posY) + 25
+	} else if playerCurrentFrame == 2 { // left
+		cx = float32(g.posX) + 35
+		cy = float32(g.posY) + 25
+	} else if playerCurrentFrame == 1 { // up
+		cx = float32(g.posX) + 26
+		cy = float32(g.posY) + 40
+	} else if playerCurrentFrame == 0 { // down
+		cx = float32(g.posX) + 35
+		cy = float32(g.posY) + 40
+	}
 
 	timeNow := time.Now()
 	deltaDamageTakenTime := timeNow.Sub(g.damageTakenTime).Milliseconds()
