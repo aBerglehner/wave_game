@@ -44,6 +44,23 @@ type Enemy struct {
 	LastAttack  time.Time
 }
 
+func newEnemy(randomWidth float64, randomHeight float64, aroundLvl int) *Enemy {
+	return &Enemy{
+		PosXMovingDirection: 0,
+		PosYMovingDirection: 0,
+		PosX:                randomWidth,
+		PosY:                randomHeight,
+		Alive:               true,
+		Lvl:                 aroundLvl,
+		Dmg:                 enemyDmgLookup[aroundLvl-1],
+		Health:              EnemyHealthLookup[aroundLvl-1],
+		Exp:                 enemyExpLookup[aroundLvl-1],
+		// ms
+		AttackSpeed: enemyAttackSpeedLookup[aroundLvl-1],
+		LastAttack:  time.Now(),
+	}
+}
+
 func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64, fps int) {
 	// fps*Seconds to reset the direction
 	var directionResetTime int = fps * 5
@@ -109,20 +126,7 @@ func CreateInit(maxWidth float64, maxHeight float64) []Enemy {
 
 		randomWidth := rand.Float64()*(maxWidth-1) + 1
 		randomHeight := rand.Float64()*(maxHeight-1) + 1
-		enemies = append(enemies, Enemy{
-			PosXMovingDirection: 0,
-			PosYMovingDirection: 0,
-			PosX:                randomWidth,
-			PosY:                randomHeight,
-			Alive:               true,
-			Lvl:                 aroundLvl,
-			Dmg:                 enemyDmgLookup[aroundLvl-1],
-			Health:              EnemyHealthLookup[aroundLvl-1],
-			Exp:                 enemyExpLookup[aroundLvl-1],
-			// ms
-			AttackSpeed: enemyAttackSpeedLookup[aroundLvl-1],
-			LastAttack:  time.Now(),
-		})
+		enemies = append(enemies, *newEnemy(randomWidth, randomHeight, aroundLvl))
 	}
 	return enemies
 }
@@ -159,4 +163,34 @@ func LoadEnemyImages(dir string) ([]*ebiten.Image, error) {
 	}
 
 	return images, nil
+}
+
+type Pos struct {
+	X float64
+	Y float64
+}
+
+type EnemyProjectile struct {
+	OldPos        Pos
+	CurPos        Pos
+	Dir           Pos
+	LastTimeMoved time.Time
+	Speed         float64
+	Dmg           int
+	Alive         bool
+	// TODO: maybe we need a max distance or so
+}
+
+func newEnemyProjectile() *EnemyProjectile {
+	return &EnemyProjectile{}
+}
+
+// TODO: idea will be have a pool of them and if really all of them are alive double the pool
+func EnemyProjectilesInit(size int) []EnemyProjectile {
+	var result []EnemyProjectile
+	for i := 0; i < size; i++ {
+		ep := EnemyProjectile{}
+		result = append(result, ep)
+	}
+	return result
 }

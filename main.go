@@ -53,7 +53,8 @@ var (
 // enemies
 var (
 	// 0 indexed
-	enemy_images []*ebiten.Image
+	enemy_images     []*ebiten.Image
+	enemyProjectiles []enemyI.EnemyProjectile
 )
 
 // 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
@@ -72,15 +73,16 @@ var expLvlLookup [constants.LvlMax]int = [...]int{
 
 // Game implements ebiten.Game interface.
 type Game struct {
-	posX            float64
-	posY            float64
-	health          int
-	dmg             float32
-	healthAbsorb    float32
-	level           int
-	exp             int
-	expNeeded       int
-	enemies         []enemyI.Enemy
+	posX         float64
+	posY         float64
+	health       int
+	dmg          float32
+	healthAbsorb float32
+	level        int
+	exp          int
+	expNeeded    int
+	enemies      []enemyI.Enemy
+	// this is for the animation of dmg taken
 	damageTakenTime time.Time
 }
 
@@ -101,7 +103,8 @@ func (g *Game) Update() error {
 		enemy := &g.enemies[i]
 		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
 
-		attack(enemy, g, playerPosX, playerPosY, attackRange2)
+		// TODO: let player attack
+		attackFromEnemy(enemy, g, playerPosX, playerPosY, attackRange2)
 
 	}
 
@@ -109,7 +112,7 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func attack(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64, attackRange2 float64) {
+func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64, attackRange2 float64) {
 	posXDiff := enemy.PosX - playerPosX
 	posYDiff := enemy.PosY - playerPosY
 	if posXDiff*posXDiff+posYDiff*posYDiff <= attackRange2 {
@@ -191,6 +194,7 @@ func drawPlayer(g *Game, screen *ebiten.Image) {
 	drawPlayerDmgTaken(g, screen)
 }
 
+// TODO: idea draw the same for enemies???
 func drawPlayerDmgTaken(g *Game, screen *ebiten.Image) {
 	var r float32 = 21
 	var strokeWidth float32 = 0
@@ -292,6 +296,9 @@ func init() {
 		panic(err)
 	}
 	enemy_images = monsters
+
+	// create the init pool of enemyProjectiles
+	enemyProjectiles = enemyI.EnemyProjectilesInit(enemyI.EnemiesCount)
 }
 
 func gameInit() *Game {
