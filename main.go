@@ -25,7 +25,7 @@ const (
 	ScreenHeight                  = 1050
 	ScreenHeightMaxSpawn          = float64(MaxUsableScreenHeight - 50)
 	MaxUsableScreenHeight         = ScreenHeight - int(StatsBottomSize) - StatsLineBottomSize
-	StatsBottomSize       float64 = 35
+	StatsBottomSize       float64 = 40
 	StatsLineBottomSize           = 10
 )
 
@@ -176,13 +176,43 @@ func movementController(g *Game) (moveDistance float64) {
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Write your game's rendering.
-	screen.Fill(color.RGBA{30, 100, 50, 1})
+	drawBackground(screen)
 
 	drawEnemies(g, screen)
 	// we draw player after enemies so the image is on top
 	drawPlayer(g, screen)
 
 	statsBottom(g, screen)
+}
+
+func drawBackground(screen *ebiten.Image) {
+	// background color
+	screen.Fill(color.RGBA{30, 100, 50, 1})
+
+	// grid lines -> left to right
+	var gridSpace float32 = 100
+	var strokeWidth float32 = 2
+	var x0 float32 = 0
+	var x1 float32 = ScreenWidth
+	var y0 float32 = gridSpace
+	var y1 float32 = gridSpace
+	var i float32
+	for i = gridSpace; i <= float32(MaxUsableScreenHeight); i += gridSpace {
+		vector.StrokeLine(screen, x0, y0, x1, y1, strokeWidth, color.RGBA{255, 255, 255, 1}, true)
+		y0 += gridSpace
+		y1 += gridSpace
+	}
+
+	// grid lines -> top to bottom
+	x0 = gridSpace
+	x1 = gridSpace
+	y0 = 0
+	y1 = float32(MaxUsableScreenHeight)
+	for i = gridSpace; i < ScreenWidth; i += gridSpace {
+		vector.StrokeLine(screen, x0, y0, x1, y1, strokeWidth, color.RGBA{255, 255, 255, 1}, true)
+		x0 += gridSpace
+		x1 += gridSpace
+	}
 }
 
 func drawPlayer(g *Game, screen *ebiten.Image) {
@@ -231,7 +261,7 @@ func drawPlayerDmgTaken(g *Game, screen *ebiten.Image) {
 	}
 
 	if deltaDamageTakenTime < 180 {
-		vector.StrokeCircle(screen, cx, cy, r, strokeWidth, color.RGBA{150, 0, 0, 150}, false)
+		vector.StrokeCircle(screen, cx, cy, r, strokeWidth, color.RGBA{150, 0, 0, 150}, true)
 	}
 }
 
@@ -253,7 +283,7 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 		var lifeHeight float32 = 6
 		var healthBarPosY float32 = float32(enemy.PosY) - (lifeHeight + 1)
 		var healthBarPosX float32 = float32(enemy.PosX)
-		vector.FillRect(screen, healthBarPosX, healthBarPosY, life, lifeHeight, color.RGBA{150, 0, 0, 150}, false)
+		vector.FillRect(screen, healthBarPosX, healthBarPosY, life, lifeHeight, color.RGBA{150, 0, 0, 150}, true)
 	}
 }
 
