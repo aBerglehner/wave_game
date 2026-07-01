@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
 	"image"
 	"image/color"
@@ -13,10 +15,13 @@ import (
 	enemyI "github.com/alex/ebiten_tutorial/enemy"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"golang.org/x/image/font/basicfont"
 )
+
+//go:embed assets/font.otf
+var fontBytes []byte
+var fontFace *text.GoTextFace
 
 const (
 	FpsTarget                     = 144
@@ -24,9 +29,8 @@ const (
 	ScreenWidthMaxSpawn           = float64(ScreenWidth - 50)
 	ScreenHeight                  = 1050
 	ScreenHeightMaxSpawn          = float64(MaxUsableScreenHeight - 50)
-	MaxUsableScreenHeight         = ScreenHeight - int(StatsBottomSize) - StatsLineBottomSize
-	StatsBottomSize       float64 = 40
-	StatsLineBottomSize           = 10
+	MaxUsableScreenHeight         = ScreenHeight - int(StatsBottomSize)
+	StatsBottomSize       float64 = 50
 )
 
 var (
@@ -290,21 +294,21 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 }
 
 func statsBottom(g *Game, screen *ebiten.Image) {
-	// bottom line
-	vector.StrokeLine(screen, 0, float32(ScreenHeight-StatsBottomSize),
-		ScreenWidth, float32(ScreenHeight-StatsBottomSize),
-		StatsLineBottomSize, color.Black, true)
+	// TODO: draw them separate to avoid jumping if numbers change
 
-	// stats
+	statsText := fmt.Sprintf("health: %d       dmg: %0.2f       health absorb: %d%%       lvl: %v       exp: %d/%d",
+		g.health, g.dmg, int(g.healthAbsorb*100), g.level, g.exp, g.expNeeded)
+
+	op := &text.DrawOptions{}
 	var bottomDistance int = 10
+	yPos := float64(ScreenHeight - int(fontFace.Size) - bottomDistance)
+	op.GeoM.Translate(10, yPos)
+
 	text.Draw(
 		screen,
-		fmt.Sprintf("health: %d | dmg: %0.2f | health absorb: %d%% | lvl: %v | exp: %d/%d",
-			g.health, g.dmg, int(g.healthAbsorb*100), g.level, g.exp, g.expNeeded),
-		basicfont.Face7x13,
-		10,
-		ScreenHeight-bottomDistance,
-		color.White,
+		statsText,
+		fontFace,
+		op,
 	)
 }
 
@@ -331,6 +335,17 @@ func init() {
 
 	// create the init pool of enemyProjectiles
 	enemyProjectiles = enemyI.EnemyProjectilesInit(enemyI.EnemiesCount)
+
+	// load font
+	source, err := text.NewGoTextFaceSource(bytes.NewReader(fontBytes))
+	if err != nil {
+		panic(err)
+	}
+
+	fontFace = &text.GoTextFace{
+		Source: source,
+		Size:   24,
+	}
 }
 
 func gameInit() *Game {
