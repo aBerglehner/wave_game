@@ -2,13 +2,13 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	_ "embed"
 	"fmt"
 	"image"
 	"image/color"
 	_ "image/png"
 	"log"
-	"path/filepath"
 	"time"
 
 	"github.com/alex/ebiten_tutorial/constants"
@@ -28,6 +28,9 @@ var fontFace *text.GoTextFace
 //
 //go:embed assets/protagonist.png
 var playerPNG []byte
+
+//go:embed assets/monsters/*
+var monsterVirtualFileSystem embed.FS
 
 const (
 	FpsTarget                     = 144
@@ -326,6 +329,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func init() {
+	// load player
 	img, _, err := image.Decode(bytes.NewReader(playerPNG))
 	if err != nil {
 		panic(err)
@@ -333,11 +337,12 @@ func init() {
 
 	playerSheet = ebiten.NewImageFromImage(img)
 
-	// enemies
-	monsters, err := enemy.LoadEnemyImages(filepath.Join("assets", "monsters"))
+	// load enemies
+	monsters, err := enemyI.LoadEnemyImages(monsterVirtualFileSystem, "assets/monsters")
 	if err != nil {
 		panic(err)
 	}
+
 	enemy_images = monsters
 
 	// load font

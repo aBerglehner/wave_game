@@ -2,15 +2,16 @@
 package enemy
 
 import (
+	"bytes"
+	"embed"
+	"image"
 	"math/rand"
-	"os"
 	"path/filepath"
 	"sort"
 	"time"
 
 	"github.com/alex/ebiten_tutorial/constants"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const (
@@ -131,11 +132,12 @@ func CreateInit(maxWidth float64, maxHeight float64) []Enemy {
 	return enemies
 }
 
-func LoadEnemyImages(dir string) ([]*ebiten.Image, error) {
-	files, err := os.ReadDir(dir)
+func LoadEnemyImages(fsys embed.FS, dir string) ([]*ebiten.Image, error) {
+	files, err := fsys.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
+
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Name() < files[j].Name()
 	})
@@ -147,19 +149,21 @@ func LoadEnemyImages(dir string) ([]*ebiten.Image, error) {
 			continue
 		}
 
-		ext := filepath.Ext(file.Name())
-		if ext != ".png" {
+		if filepath.Ext(file.Name()) != ".png" {
 			continue
 		}
 
-		path := filepath.Join(dir, file.Name())
-
-		img, _, err := ebitenutil.NewImageFromFile(path)
+		data, err := fsys.ReadFile(filepath.Join(dir, file.Name()))
 		if err != nil {
 			return nil, err
 		}
 
-		images = append(images, img)
+		img, _, err := image.Decode(bytes.NewReader(data))
+		if err != nil {
+			return nil, err
+		}
+
+		images = append(images, ebiten.NewImageFromImage(img))
 	}
 
 	return images, nil
@@ -178,14 +182,14 @@ type EnemyProjectile struct {
 	Speed         float64
 	Dmg           int
 	Alive         bool
-	// TODO: maybe we need a max distance or so
+	// TODO: maybe we need a max distance or so!
 }
 
 func newEnemyProjectile() *EnemyProjectile {
 	return &EnemyProjectile{}
 }
 
-// TODO: idea will be have a pool of them and if really all of them are alive double the pool
+// TODO: idea will be have a pool of them and if really all of them are alive double the pool!
 func EnemyProjectilesInit(size int) []EnemyProjectile {
 	var result []EnemyProjectile
 	for i := 0; i < size; i++ {
