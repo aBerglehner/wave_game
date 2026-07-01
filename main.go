@@ -191,7 +191,7 @@ func drawBackground(screen *ebiten.Image) {
 
 	// grid lines -> left to right
 	var gridSpace float32 = 100
-	var strokeWidth float32 = 2
+	var strokeWidth float32 = 0.6
 	var x0 float32 = 0
 	var x1 float32 = ScreenWidth
 	var y0 float32 = gridSpace
