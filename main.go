@@ -108,7 +108,7 @@ func (g *Game) Update() error {
 
 	}
 
-	go logFpsAvg()
+	// go logFpsAvg()
 	return nil
 }
 
@@ -183,6 +183,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawPlayer(g, screen)
 
 	statsBottom(g, screen)
+
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 }
 
 func drawBackground(screen *ebiten.Image) {
