@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	_ "image/png"
 	"log"
 	"path/filepath"
 	"time"
@@ -22,6 +23,11 @@ import (
 //go:embed assets/font.otf
 var fontBytes []byte
 var fontFace *text.GoTextFace
+
+// this will load it into the binary(no assets folder needed than)
+//
+//go:embed assets/protagonist.png
+var playerPNG []byte
 
 const (
 	FpsTarget                     = 144
@@ -320,11 +326,12 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func init() {
-	img, _, err := ebitenutil.NewImageFromFile(filepath.Join("assets", "protagonist.png"))
+	img, _, err := image.Decode(bytes.NewReader(playerPNG))
 	if err != nil {
 		panic(err)
 	}
-	playerSheet = img
+
+	playerSheet = ebiten.NewImageFromImage(img)
 
 	// enemies
 	monsters, err := enemy.LoadEnemyImages(filepath.Join("assets", "monsters"))
@@ -332,9 +339,6 @@ func init() {
 		panic(err)
 	}
 	enemy_images = monsters
-
-	// create the init pool of enemyProjectiles
-	enemyProjectiles = enemyI.EnemyProjectilesInit(enemyI.EnemiesCount)
 
 	// load font
 	source, err := text.NewGoTextFaceSource(bytes.NewReader(fontBytes))
@@ -346,6 +350,9 @@ func init() {
 		Source: source,
 		Size:   24,
 	}
+
+	// create the init pool of enemyProjectiles
+	enemyProjectiles = enemyI.EnemyProjectilesInit(enemyI.EnemiesCount)
 }
 
 func gameInit() *Game {
