@@ -175,21 +175,22 @@ type Pos struct {
 }
 
 type EnemyProjectile struct {
-	OldPos        Pos
-	CurPos        Pos
-	Dir           Pos
-	LastTimeMoved time.Time
-	Speed         float64
-	Dmg           int
-	Alive         bool
-	// TODO: maybe we need a max distance or so!
+	OldPos Pos
+	CurPos Pos
+	// divide / fps -> to get real number
+	Velocity Pos
+	created  time.Time
+	Dmg      int
+	Alive    bool
+	// TODO: maybe we need a max distance or so!!
 }
 
-func newEnemyProjectile() *EnemyProjectile {
-	return &EnemyProjectile{}
+// TODO: later move speed to Enemy
+func NewEnemyProjectile(pos Pos, velocity Pos, dmg int) *EnemyProjectile {
+	return &EnemyProjectile{OldPos: pos, CurPos: pos, Velocity: velocity, created: time.Now(), Dmg: dmg, Alive: true}
 }
 
-// TODO: idea will be have a pool of them and if really all of them are alive double the pool!
+// TODO: idea will be have a pool of them and if really all of them are alive double the pool!!
 func EnemyProjectilesInit(size int) []EnemyProjectile {
 	var result []EnemyProjectile
 	for i := 0; i < size; i++ {

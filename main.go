@@ -9,6 +9,7 @@ import (
 	"image/color"
 	_ "image/png"
 	"log"
+	"math"
 	"time"
 
 	"github.com/alex/ebiten_tutorial/constants"
@@ -118,11 +119,31 @@ func (g *Game) Update() error {
 
 		// TODO: let player attack
 		attackFromEnemy(enemy, g, playerPosX, playerPosY, attackRange2)
+		updateEnemyProjectiles()
 
 	}
 
 	// go logFpsAvg()
 	return nil
+}
+
+func updateEnemyProjectiles() {
+	for i := range enemyProjectiles {
+		if enemyProjectiles[i].Alive {
+			pos := enemyProjectiles[i].CurPos
+			vel := enemyProjectiles[i].Velocity
+			newPosX := pos.X + (vel.X / FpsTarget)
+			newPosY := pos.Y + (vel.Y / FpsTarget)
+			enemyProjectiles[i].CurPos = enemyI.Pos{X: newPosX, Y: newPosY}
+			if newPosX < 0 || newPosX > ScreenWidth {
+				enemyProjectiles[i].Alive = false
+			}
+			if newPosY < 0 || newPosY > float64(MaxUsableScreenHeight) {
+				enemyProjectiles[i].Alive = false
+			}
+			// TODO: update old pos
+		}
+	}
 }
 
 func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64, attackRange2 float64) {
@@ -134,8 +155,33 @@ func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY
 		if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
 			enemy.LastAttack = timeNow
 
-			g.damageTakenTime = time.Now()
-			g.health -= enemy.Dmg
+			createEnemyProjectile(enemy, g)
+
+			// TODO: do this on collision []EnemyProjectile
+			// g.damageTakenTime = time.Now()
+			// g.health -= enemy.Dmg
+		}
+	}
+}
+
+// createEnemyProjectile: a projectile in the direction to the player is created. It is added to the global var []enemyProjectiles
+func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
+	dx := g.posX - enemy.PosX
+	dy := g.posY - enemy.PosY
+	length := math.Sqrt(dx*dx + dy*dy)
+	dir := enemyI.Pos{X: dx / length, Y: dy / length}
+	// TODO: move this var to enemy struct
+	// pixels per second
+	var speed float64 = 5
+	velocity := enemyI.Pos{X: dir.X * speed, Y: dir.Y * speed}
+	// find not alive enemyProjectiles
+	for i := range enemyProjectiles {
+		if !enemyProjectiles[i].Alive {
+			enemyProjectiles[i] = *enemyI.NewEnemyProjectile(enemyI.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
+			fmt.Printf("enemyProjectiles: %+v\n", enemyProjectiles[i])
+			break
+		} else {
+			// TODO: double pool -> create new ones
 		}
 	}
 }
@@ -192,12 +238,26 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawBackground(screen)
 
 	drawEnemies(g, screen)
+	drawEnemyProjectiles(screen)
 	// we draw player after enemies so the image is on top
 	drawPlayer(g, screen)
 
 	statsBottom(g, screen)
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
+}
+
+func drawEnemyProjectiles(screen *ebiten.Image) {
+	for i := range enemyProjectiles {
+		if enemyProjectiles[i].Alive {
+			// TODO: draw -> just the pos
+
+			var cx float32 = float32(enemyProjectiles[i].CurPos.X)
+			var cy float32 = float32(enemyProjectiles[i].CurPos.Y)
+			var r float32 = 5
+			vector.FillCircle(screen, cx, cy, r, color.RGBA{150, 0, 0, 150}, true)
+		}
+	}
 }
 
 func drawBackground(screen *ebiten.Image) {
