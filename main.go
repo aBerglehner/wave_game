@@ -135,6 +135,7 @@ func updateEnemyProjectiles() {
 			newPosX := pos.X + (vel.X / FpsTarget)
 			newPosY := pos.Y + (vel.Y / FpsTarget)
 			enemyProjectiles[i].CurPos = enemyI.Pos{X: newPosX, Y: newPosY}
+
 			if newPosX < 0 || newPosX > ScreenWidth {
 				enemyProjectiles[i].Alive = false
 			}
@@ -174,11 +175,10 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	// pixels per second
 	var speed float64 = 5
 	velocity := enemyI.Pos{X: dir.X * speed, Y: dir.Y * speed}
-	// find not alive enemyProjectiles
+	// find not alive enemyProjectiles to use
 	for i := range enemyProjectiles {
 		if !enemyProjectiles[i].Alive {
 			enemyProjectiles[i] = *enemyI.NewEnemyProjectile(enemyI.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
-			fmt.Printf("enemyProjectiles: %+v\n", enemyProjectiles[i])
 			break
 		} else {
 			// TODO: double pool -> create new ones
