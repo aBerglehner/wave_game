@@ -302,23 +302,39 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 	}
 }
 
+type StatsInfo struct {
+	t          string
+	sizeNeeded int
+}
+
 func statsBottom(g *Game, screen *ebiten.Image) {
-	// TODO: draw them separate to avoid jumping if numbers change
+	// TODO: health show max health also (currently not available)
 
-	statsText := fmt.Sprintf("health: %d       dmg: %0.2f       health absorb: %d%%       lvl: %v       exp: %d/%d",
-		g.health, g.dmg, int(g.healthAbsorb*100), g.level, g.exp, g.expNeeded)
-
-	op := &text.DrawOptions{}
 	var bottomDistance int = 10
 	yPos := float64(ScreenHeight - int(fontFace.Size) - bottomDistance)
-	op.GeoM.Translate(10, yPos)
 
-	text.Draw(
-		screen,
-		statsText,
-		fontFace,
-		op,
-	)
+	var statsText []StatsInfo
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp: %d", g.health), 200})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("dmg: %0.2f", g.dmg), 250})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp absorb: %d%%", int(g.healthAbsorb*100)), 200})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("lvl: %v", g.level), 200})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("exp: %d%%", g.exp*100/g.expNeeded), 100})
+
+	var curPosX float64 = 10
+	for i := range statsText {
+		op := &text.DrawOptions{}
+		op.GeoM.Translate(curPosX, yPos)
+		curText := statsText[i].t
+
+		text.Draw(
+			screen,
+			curText,
+			// TODO: maybe another font
+			fontFace,
+			op,
+		)
+		curPosX += float64(statsText[i].sizeNeeded)
+	}
 }
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
