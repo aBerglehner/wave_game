@@ -110,6 +110,7 @@ func (g *Game) Update() error {
 	// TODO:load it to random postion that is valid
 	// TODO:load only +1 -1 to own level monsters
 
+	// TODO: this should move to enemey so every enemy has a diff range
 	attackRange2 := constants.AttackRange * constants.AttackRange
 	playerPosX := g.posX
 	playerPosY := g.posY
@@ -167,9 +168,12 @@ func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY
 
 // createEnemyProjectile: a projectile in the direction to the player is created. It is added to the global var []enemyProjectiles
 func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
-	dx := g.posX - enemy.PosX
-	dy := g.posY - enemy.PosY
+	playerX := g.posX + playerImageSize/2
+	playerY := g.posY + playerImageSize/2
+	dx := playerX - enemy.PosX
+	dy := playerY - enemy.PosY
 	length := math.Sqrt(dx*dx + dy*dy)
+	// TODO: the attack dir is off -> or the g.Pos is diff cause of the image or something else
 	dir := enemyI.Pos{X: dx / length, Y: dy / length}
 	// TODO: move this var to enemy struct
 	// pixels per second
