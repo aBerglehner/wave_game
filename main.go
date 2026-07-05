@@ -173,12 +173,10 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	dx := playerX - enemy.PosX
 	dy := playerY - enemy.PosY
 	length := math.Sqrt(dx*dx + dy*dy)
-	// TODO: the attack dir is off -> or the g.Pos is diff cause of the image or something else
 	dir := enemyI.Pos{X: dx / length, Y: dy / length}
 	// TODO: move this var to enemy struct
 	// pixels per second
-	var speed float64 = 5
-	velocity := enemyI.Pos{X: dir.X * speed, Y: dir.Y * speed}
+	velocity := enemyI.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
 	// find not alive enemyProjectiles to use
 	for i := range enemyProjectiles {
 		if !enemyProjectiles[i].Alive {

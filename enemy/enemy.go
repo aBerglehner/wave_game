@@ -25,6 +25,8 @@ var (
 	enemyExpLookup    [constants.LvlMax]int = [...]int{1, 10, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000, 128_000}
 	// slower on lower lvl
 	enemyAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{1_500, 1_000, 850, 700, 600, 550, 500, 400, 350, 200}
+	// pixels per second
+	enemyProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
 )
 
 // TODO: spwan enemies
@@ -43,6 +45,8 @@ type Enemy struct {
 	// ms
 	AttackSpeed int64
 	LastAttack  time.Time
+	// pixels per second
+	ProjectileSpeed float64
 }
 
 func newEnemy(randomWidth float64, randomHeight float64, aroundLvl int) *Enemy {
@@ -57,8 +61,9 @@ func newEnemy(randomWidth float64, randomHeight float64, aroundLvl int) *Enemy {
 		Health:              EnemyHealthLookup[aroundLvl-1],
 		Exp:                 enemyExpLookup[aroundLvl-1],
 		// ms
-		AttackSpeed: enemyAttackSpeedLookup[aroundLvl-1],
-		LastAttack:  time.Now(),
+		AttackSpeed:     enemyAttackSpeedLookup[aroundLvl-1],
+		LastAttack:      time.Now(),
+		ProjectileSpeed: enemyProjectileSpeedLookup[aroundLvl-1],
 	}
 }
 
