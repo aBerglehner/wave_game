@@ -174,8 +174,6 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	dy := playerY - enemy.PosY
 	length := math.Sqrt(dx*dx + dy*dy)
 	dir := enemyI.Pos{X: dx / length, Y: dy / length}
-	// TODO: move this var to enemy struct
-	// pixels per second
 	velocity := enemyI.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
 	// find not alive enemyProjectiles to use
 	for i := range enemyProjectiles {
