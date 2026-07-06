@@ -30,7 +30,6 @@ var (
 	enemyProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{70, 80, 90, 100, 110, 120, 130, 140, 150, 160}
 )
 
-// TODO: spwan enemies
 type Enemy struct {
 	// this is just a counter so it will always walk a given ticks into one direction
 	// when positiv the walk will be positiv and vice versa
@@ -196,7 +195,6 @@ func NewEnemyProjectile(pos Pos, velocity Pos, dmg int) EnemyProjectile {
 	return EnemyProjectile{OldPos: pos, CurPos: pos, Velocity: velocity, Dmg: dmg, Alive: true}
 }
 
-// TODO: idea will be have a pool of them and if really all of them are alive double the pool!!
 func EnemyProjectilesInit(size int) []EnemyProjectile {
 	var result []EnemyProjectile
 	for i := 0; i < size; i++ {
