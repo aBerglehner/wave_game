@@ -110,12 +110,11 @@ func (g *Game) Update() error {
 	// TODO:load it to random postion that is valid
 	// TODO:load only +1 -1 to own level monsters
 
-	// TODO: this should move to enemey so every enemy has a diff range
-	attackRange2 := constants.AttackRange * constants.AttackRange
 	playerPosX := g.posX
 	playerPosY := g.posY
 	for i := range g.enemies {
 		enemy := &g.enemies[i]
+		attackRange2 := enemy.AttackRange * enemy.AttackRange
 		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
 
 		// TODO: let player attack

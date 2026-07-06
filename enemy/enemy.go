@@ -24,7 +24,8 @@ var (
 	EnemyHealthLookup [constants.LvlMax]int = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
 	enemyExpLookup    [constants.LvlMax]int = [...]int{1, 10, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000, 128_000}
 	// slower on lower lvl
-	enemyAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{1_500, 1_000, 850, 700, 600, 550, 500, 400, 350, 200}
+	enemyAttackSpeedLookup [constants.LvlMax]int64   = [...]int64{1_500, 1_000, 850, 700, 600, 550, 500, 400, 350, 200}
+	enemyAttackRangeLookup [constants.LvlMax]float64 = [...]float64{100, 150, 180, 200, 220, 250, 280, 300, 320, 400}
 	// pixels per second
 	enemyProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{70, 80, 90, 100, 110, 120, 130, 140, 150, 160}
 )
@@ -44,6 +45,7 @@ type Enemy struct {
 	Exp                 int
 	// ms
 	AttackSpeed int64
+	AttackRange float64
 	LastAttack  time.Time
 	// pixels per second
 	ProjectileSpeed float64
@@ -61,7 +63,9 @@ func newEnemy(randomWidth float64, randomHeight float64, aroundLvl int) Enemy {
 		Health:              EnemyHealthLookup[aroundLvl-1],
 		Exp:                 enemyExpLookup[aroundLvl-1],
 		// ms
-		AttackSpeed:     enemyAttackSpeedLookup[aroundLvl-1],
+		AttackSpeed: enemyAttackSpeedLookup[aroundLvl-1],
+		// pixels
+		AttackRange:     enemyAttackRangeLookup[aroundLvl-1],
 		LastAttack:      time.Now(),
 		ProjectileSpeed: enemyProjectileSpeedLookup[aroundLvl-1],
 	}
