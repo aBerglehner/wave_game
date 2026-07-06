@@ -26,7 +26,7 @@ var (
 	// slower on lower lvl
 	enemyAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{1_500, 1_000, 850, 700, 600, 550, 500, 400, 350, 200}
 	// pixels per second
-	enemyProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+	enemyProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{70, 80, 90, 100, 110, 120, 130, 140, 150, 160}
 )
 
 // TODO: spwan enemies

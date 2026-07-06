@@ -120,9 +120,9 @@ func (g *Game) Update() error {
 
 		// TODO: let player attack
 		attackFromEnemy(enemy, g, playerPosX, playerPosY, attackRange2)
-		updateEnemyProjectiles()
 
 	}
+	updateEnemyProjectiles()
 
 	// go logFpsAvg()
 	return nil
@@ -210,6 +210,7 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 		}
 	}
 
+	// yes this will skip one attack -> but this(bug) is ok to have 1 attack out of a shit ton not happening
 	if doublePoolNeeded {
 		fmt.Printf("double pool needed current len(enemyProjectiles): %v\n", len(enemyProjectiles))
 		enemyProjectiles = append(enemyProjectiles, enemyI.EnemyProjectilesInit(len(enemyProjectiles))...)
@@ -224,6 +225,7 @@ func updateEnemyProjectiles() {
 			newPosX := pos.X + (vel.X / FpsTarget)
 			newPosY := pos.Y + (vel.Y / FpsTarget)
 			enemyProjectiles[i].CurPos = enemyI.Pos{X: newPosX, Y: newPosY}
+			// TODO: update old pos
 
 			if newPosX < 0 || newPosX > ScreenWidth {
 				enemyProjectiles[i].Alive = false
@@ -231,7 +233,6 @@ func updateEnemyProjectiles() {
 			if newPosY < 0 || newPosY > float64(MaxUsableScreenHeight) {
 				enemyProjectiles[i].Alive = false
 			}
-			// TODO: update old pos
 		}
 	}
 }
