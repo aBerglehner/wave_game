@@ -49,8 +49,8 @@ type Enemy struct {
 	ProjectileSpeed float64
 }
 
-func newEnemy(randomWidth float64, randomHeight float64, aroundLvl int) *Enemy {
-	return &Enemy{
+func newEnemy(randomWidth float64, randomHeight float64, aroundLvl int) Enemy {
+	return Enemy{
 		PosXMovingDirection: 0,
 		PosYMovingDirection: 0,
 		PosX:                randomWidth,
@@ -122,7 +122,7 @@ func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64
 	}
 }
 
-func CreateInit(maxWidth float64, maxHeight float64) []Enemy {
+func EnemyCreateInit(maxWidth float64, maxHeight float64) []Enemy {
 	var enemies []Enemy
 	for i := 0; i < EnemiesCount; i++ {
 		aroundLvl := 1
@@ -132,7 +132,7 @@ func CreateInit(maxWidth float64, maxHeight float64) []Enemy {
 
 		randomWidth := rand.Float64()*(maxWidth-1) + 1
 		randomHeight := rand.Float64()*(maxHeight-1) + 1
-		enemies = append(enemies, *newEnemy(randomWidth, randomHeight, aroundLvl))
+		enemies = append(enemies, newEnemy(randomWidth, randomHeight, aroundLvl))
 	}
 	return enemies
 }
@@ -184,15 +184,12 @@ type EnemyProjectile struct {
 	CurPos Pos
 	// divide / fps -> to get real number
 	Velocity Pos
-	created  time.Time
 	Dmg      int
 	Alive    bool
-	// TODO: maybe we need a max distance or so!!
 }
 
-// TODO: later move speed to Enemy
-func NewEnemyProjectile(pos Pos, velocity Pos, dmg int) *EnemyProjectile {
-	return &EnemyProjectile{OldPos: pos, CurPos: pos, Velocity: velocity, created: time.Now(), Dmg: dmg, Alive: true}
+func NewEnemyProjectile(pos Pos, velocity Pos, dmg int) EnemyProjectile {
+	return EnemyProjectile{OldPos: pos, CurPos: pos, Velocity: velocity, Dmg: dmg, Alive: true}
 }
 
 // TODO: idea will be have a pool of them and if really all of them are alive double the pool!!

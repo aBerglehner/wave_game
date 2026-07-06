@@ -128,64 +128,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func updateEnemyProjectiles() {
-	for i := range enemyProjectiles {
-		if enemyProjectiles[i].Alive {
-			pos := enemyProjectiles[i].CurPos
-			vel := enemyProjectiles[i].Velocity
-			newPosX := pos.X + (vel.X / FpsTarget)
-			newPosY := pos.Y + (vel.Y / FpsTarget)
-			enemyProjectiles[i].CurPos = enemyI.Pos{X: newPosX, Y: newPosY}
-
-			if newPosX < 0 || newPosX > ScreenWidth {
-				enemyProjectiles[i].Alive = false
-			}
-			if newPosY < 0 || newPosY > float64(MaxUsableScreenHeight) {
-				enemyProjectiles[i].Alive = false
-			}
-			// TODO: update old pos
-		}
-	}
-}
-
-func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64, attackRange2 float64) {
-	posXDiff := enemy.PosX - playerPosX
-	posYDiff := enemy.PosY - playerPosY
-	if posXDiff*posXDiff+posYDiff*posYDiff <= attackRange2 {
-		timeNow := time.Now()
-		deltaLastAttackTime := timeNow.Sub(enemy.LastAttack)
-		if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
-			enemy.LastAttack = timeNow
-
-			createEnemyProjectile(enemy, g)
-
-			// TODO: do this on collision []EnemyProjectile
-			// g.damageTakenTime = time.Now()
-			// g.health -= enemy.Dmg
-		}
-	}
-}
-
-// createEnemyProjectile: a projectile in the direction to the player is created. It is added to the global var []enemyProjectiles
-func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
-	playerX := g.posX + playerImageSize/2
-	playerY := g.posY + playerImageSize/2
-	dx := playerX - enemy.PosX
-	dy := playerY - enemy.PosY
-	length := math.Sqrt(dx*dx + dy*dy)
-	dir := enemyI.Pos{X: dx / length, Y: dy / length}
-	velocity := enemyI.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
-	// find not alive enemyProjectiles to use
-	for i := range enemyProjectiles {
-		if !enemyProjectiles[i].Alive {
-			enemyProjectiles[i] = *enemyI.NewEnemyProjectile(enemyI.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
-			break
-		} else {
-			// TODO: double pool -> create new ones
-		}
-	}
-}
-
 func movementController(g *Game) (moveDistance float64) {
 	cur := time.Now()
 	deltaTime := cur.Sub(movementTimePrev)
@@ -229,6 +171,69 @@ func movementController(g *Game) (moveDistance float64) {
 		// fmt.Println("f key pressed")
 	}
 	return moveDistance
+}
+
+func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64, attackRange2 float64) {
+	posXDiff := enemy.PosX - playerPosX
+	posYDiff := enemy.PosY - playerPosY
+	if posXDiff*posXDiff+posYDiff*posYDiff <= attackRange2 {
+		timeNow := time.Now()
+		deltaLastAttackTime := timeNow.Sub(enemy.LastAttack)
+		if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
+			enemy.LastAttack = timeNow
+
+			createEnemyProjectile(enemy, g)
+
+			// TODO: do this on collision []EnemyProjectile
+			// g.damageTakenTime = time.Now()
+			// g.health -= enemy.Dmg
+		}
+	}
+}
+
+// createEnemyProjectile: a projectile in the direction to the player is created. It is added to the global var []enemyProjectiles
+func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
+	playerX := g.posX + playerImageSize/2
+	playerY := g.posY + playerImageSize/2
+	dx := playerX - enemy.PosX
+	dy := playerY - enemy.PosY
+	length := math.Sqrt(dx*dx + dy*dy)
+	dir := enemyI.Pos{X: dx / length, Y: dy / length}
+	velocity := enemyI.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
+	// find not alive enemyProjectiles to use
+	doublePoolNeeded := true
+	for i := range enemyProjectiles {
+		if !enemyProjectiles[i].Alive {
+			enemyProjectiles[i] = enemyI.NewEnemyProjectile(enemyI.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
+			doublePoolNeeded = false
+			break
+		}
+	}
+
+	if doublePoolNeeded {
+		fmt.Printf("double pool needed current len(enemyProjectiles): %v\n", len(enemyProjectiles))
+		enemyProjectiles = append(enemyProjectiles, enemyI.EnemyProjectilesInit(len(enemyProjectiles))...)
+	}
+}
+
+func updateEnemyProjectiles() {
+	for i := range enemyProjectiles {
+		if enemyProjectiles[i].Alive {
+			pos := enemyProjectiles[i].CurPos
+			vel := enemyProjectiles[i].Velocity
+			newPosX := pos.X + (vel.X / FpsTarget)
+			newPosY := pos.Y + (vel.Y / FpsTarget)
+			enemyProjectiles[i].CurPos = enemyI.Pos{X: newPosX, Y: newPosY}
+
+			if newPosX < 0 || newPosX > ScreenWidth {
+				enemyProjectiles[i].Alive = false
+			}
+			if newPosY < 0 || newPosY > float64(MaxUsableScreenHeight) {
+				enemyProjectiles[i].Alive = false
+			}
+			// TODO: update old pos
+		}
+	}
 }
 
 // Draw draws the game screen.
@@ -437,7 +442,7 @@ func init() {
 }
 
 func gameInit() *Game {
-	enemies := enemy.CreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
+	enemies := enemy.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
 	return &Game{posX: 10, posY: 10, health: 100, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
 }
 
