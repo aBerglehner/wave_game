@@ -249,7 +249,33 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 
 // TODO: parallel
 func updateEnemyProjectiles() {
-	for i := range enemyProjectiles {
+	// count is never 0 as len(enemyProjectiles) == min enemies on display
+	count := len(enemyProjectiles)
+	workers := runtime.GOMAXPROCS(0)
+	workForEach := count / workers
+	// return early if there are so less
+	if workForEach == 0 {
+		updatePartOfEnemyProjectiles(0, count)
+		return
+	}
+
+	var wg sync.WaitGroup
+	i := 0
+	for i = 0; i < count; i += workForEach {
+		// this handles the left overs
+		max := min(i+workForEach, count)
+
+		wg.Add(1)
+		go func(start int, end int) {
+			defer wg.Done()
+			updatePartOfEnemyProjectiles(start, end)
+		}(i, max)
+	}
+	wg.Wait()
+}
+
+func updatePartOfEnemyProjectiles(start int, end int) {
+	for i := start; i < end; i += 1 {
 		if enemyProjectiles[i].Alive {
 			pos := enemyProjectiles[i].CurPos
 			vel := enemyProjectiles[i].Velocity
