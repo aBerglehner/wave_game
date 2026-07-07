@@ -209,7 +209,7 @@ func attackFromEnemy(enemy *enemy.Enemy, playerPosX float64, playerPosY float64,
 		if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
 			enemy.LastAttack = timeNow
 
-			// createEnemyProjectile(enemy, g)
+			// just send them and handle them afterwards all togehter
 			enemiesThatWantToAttackCh <- enemy
 
 			// TODO: do this on collision []EnemyProjectile
@@ -232,8 +232,6 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	doublePoolNeeded := true
 	for i := range enemyProjectiles {
 		if !enemyProjectiles[i].Alive {
-			// TODO: other idea is we send enemy that attack to a channel -> and when all are check we let only them attack
-			// if we do this we can just look over enemyProjectiles and increase the ch[i] pos of enemy that attack
 			enemyProjectiles[i] = enemyI.NewEnemyProjectile(enemyI.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
 			doublePoolNeeded = false
 			break
@@ -247,7 +245,6 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	}
 }
 
-// TODO: parallel
 func updateEnemyProjectiles() {
 	// count is never 0 as len(enemyProjectiles) == min enemies on display
 	count := len(enemyProjectiles)
