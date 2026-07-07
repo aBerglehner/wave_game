@@ -300,9 +300,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// start := time.Now()
 	drawBackground(screen)
 
-	// TODO:parallel try
 	drawEnemies(g, screen)
-	// TODO:parallel try
 	drawEnemyProjectiles(screen)
 	// we draw player after enemies so the image is on top
 	drawPlayer(g, screen)
@@ -319,7 +317,7 @@ func drawEnemyProjectiles(screen *ebiten.Image) {
 			var cx float32 = float32(enemyProjectiles[i].CurPos.X)
 			var cy float32 = float32(enemyProjectiles[i].CurPos.Y)
 			var r float32 = 5
-			vector.FillCircle(screen, cx, cy, r, color.RGBA{150, 0, 0, 150}, true)
+			vector.FillCircle(screen, cx, cy, r, color.RGBA{150, 0, 0, 150}, false)
 		}
 	}
 }
@@ -422,7 +420,7 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 		var lifeHeight float32 = 6
 		var healthBarPosY float32 = float32(enemy.PosY) - (lifeHeight + 1)
 		var healthBarPosX float32 = float32(enemy.PosX)
-		vector.FillRect(screen, healthBarPosX, healthBarPosY, life, lifeHeight, color.RGBA{150, 0, 0, 150}, true)
+		vector.FillRect(screen, healthBarPosX, healthBarPosY, life, lifeHeight, color.RGBA{150, 0, 0, 150}, false)
 	}
 }
 
