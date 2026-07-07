@@ -10,11 +10,14 @@ import (
 	_ "image/png"
 	"log"
 	"math"
+	"runtime"
+	"sync"
 	"time"
 
 	"github.com/alex/ebiten_tutorial/constants"
 	"github.com/alex/ebiten_tutorial/enemy"
 	enemyI "github.com/alex/ebiten_tutorial/enemy"
+	"github.com/alex/ebiten_tutorial/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -104,6 +107,7 @@ type Game struct {
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
 	// Write your game's logical update.
+	// start := time.Now()
 	moveDistance := movementController(g)
 
 	// TODO:load check which monster is alive -> otherwise spawn a new one
@@ -112,18 +116,29 @@ func (g *Game) Update() error {
 
 	playerPosX := g.posX
 	playerPosY := g.posY
-	for i := range g.enemies {
-		enemy := &g.enemies[i]
-		attackRange2 := enemy.AttackRange * enemy.AttackRange
-		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
 
-		// TODO: let player attack
-		attackFromEnemy(enemy, g, playerPosX, playerPosY, attackRange2)
+	enemiesThatWantToAttackCh := make(chan *enemyI.Enemy)
+	var wg sync.WaitGroup
+	tasks := utils.SplitTasks(g.enemies, runtime.NumCPU())
 
+	for _, enemies := range tasks {
+		wg.Add(1)
+		go updateEnemies(enemies, moveDistance, playerPosX, playerPosY, enemiesThatWantToAttackCh, &wg)
 	}
+
+	go func() {
+		wg.Wait()
+		close(enemiesThatWantToAttackCh)
+	}()
+
+	for c := range enemiesThatWantToAttackCh {
+		createEnemyProjectile(c, g)
+	}
+
 	updateEnemyProjectiles()
 
 	// go logFpsAvg()
+	// log.Printf("update took %v", time.Since(start))
 	return nil
 }
 
@@ -172,7 +187,20 @@ func movementController(g *Game) (moveDistance float64) {
 	return moveDistance
 }
 
-func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY float64, attackRange2 float64) {
+func updateEnemies(enemies []enemyI.Enemy, moveDistance float64, playerPosX float64, playerPosY float64, enemiesThatWantToAttackCh chan<- *enemyI.Enemy, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for i := range enemies {
+		enemy := &enemies[i]
+		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
+
+		// TODO: let player attack
+		attackFromEnemy(enemy, playerPosX, playerPosY, enemiesThatWantToAttackCh)
+
+	}
+}
+
+func attackFromEnemy(enemy *enemy.Enemy, playerPosX float64, playerPosY float64, enemiesThatWantToAttackCh chan<- *enemyI.Enemy) {
+	attackRange2 := enemy.AttackRange * enemy.AttackRange
 	posXDiff := enemy.PosX - playerPosX
 	posYDiff := enemy.PosY - playerPosY
 	if posXDiff*posXDiff+posYDiff*posYDiff <= attackRange2 {
@@ -181,7 +209,8 @@ func attackFromEnemy(enemy *enemy.Enemy, g *Game, playerPosX float64, playerPosY
 		if enemy.AttackSpeed < deltaLastAttackTime.Milliseconds() {
 			enemy.LastAttack = timeNow
 
-			createEnemyProjectile(enemy, g)
+			// createEnemyProjectile(enemy, g)
+			enemiesThatWantToAttackCh <- enemy
 
 			// TODO: do this on collision []EnemyProjectile
 			// g.damageTakenTime = time.Now()
@@ -203,6 +232,8 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	doublePoolNeeded := true
 	for i := range enemyProjectiles {
 		if !enemyProjectiles[i].Alive {
+			// TODO: other idea is we send enemy that attack to a channel -> and when all are check we let only them attack
+			// if we do this we can just look over enemyProjectiles and increase the ch[i] pos of enemy that attack
 			enemyProjectiles[i] = enemyI.NewEnemyProjectile(enemyI.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
 			doublePoolNeeded = false
 			break
@@ -216,6 +247,7 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	}
 }
 
+// TODO: parallel
 func updateEnemyProjectiles() {
 	for i := range enemyProjectiles {
 		if enemyProjectiles[i].Alive {
@@ -240,9 +272,12 @@ func updateEnemyProjectiles() {
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 // The stuff that you draw last is on top
 func (g *Game) Draw(screen *ebiten.Image) {
+	// start := time.Now()
 	drawBackground(screen)
 
+	// TODO:parallel try
 	drawEnemies(g, screen)
+	// TODO:parallel try
 	drawEnemyProjectiles(screen)
 	// we draw player after enemies so the image is on top
 	drawPlayer(g, screen)
@@ -250,13 +285,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	statsBottom(g, screen)
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
+	// log.Printf("draw took %v", time.Since(start))
 }
 
 func drawEnemyProjectiles(screen *ebiten.Image) {
 	for i := range enemyProjectiles {
 		if enemyProjectiles[i].Alive {
-			// TODO: draw -> just the pos
-
 			var cx float32 = float32(enemyProjectiles[i].CurPos.X)
 			var cy float32 = float32(enemyProjectiles[i].CurPos.Y)
 			var r float32 = 5
