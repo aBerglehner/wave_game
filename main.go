@@ -10,7 +10,6 @@ import (
 	_ "image/png"
 	"log"
 	"math"
-	"runtime"
 	"sync"
 	"time"
 
@@ -119,7 +118,9 @@ func (g *Game) Update() error {
 
 	enemiesThatWantToAttackCh := make(chan *enemyI.Enemy)
 	var wg sync.WaitGroup
-	tasks := utils.SplitTasks(g.enemies, runtime.NumCPU())
+
+	workers := 6 // runtime.GOMAXPROCS(0)
+	tasks := utils.SplitTasks(g.enemies, workers)
 
 	for _, enemies := range tasks {
 		wg.Add(1)
@@ -250,7 +251,7 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 func updateEnemyProjectiles() {
 	// count is never 0 as len(enemyProjectiles) == min enemies on display
 	count := len(enemyProjectiles)
-	workers := runtime.GOMAXPROCS(0)
+	workers := 6 // runtime.GOMAXPROCS(0)
 	workForEach := count / workers
 	// return early if there are so less
 	if workForEach == 0 {
