@@ -123,7 +123,10 @@ func (g *Game) Update() error {
 
 	for _, enemies := range tasks {
 		wg.Add(1)
-		go updateEnemies(enemies, moveDistance, playerPosX, playerPosY, enemiesThatWantToAttackCh, &wg)
+		go func(enemies []enemyI.Enemy) {
+			defer wg.Done()
+			updateEnemies(enemies, moveDistance, playerPosX, playerPosY, enemiesThatWantToAttackCh)
+		}(enemies)
 	}
 
 	go func() {
@@ -187,8 +190,7 @@ func movementController(g *Game) (moveDistance float64) {
 	return moveDistance
 }
 
-func updateEnemies(enemies []enemyI.Enemy, moveDistance float64, playerPosX float64, playerPosY float64, enemiesThatWantToAttackCh chan<- *enemyI.Enemy, wg *sync.WaitGroup) {
-	defer wg.Done()
+func updateEnemies(enemies []enemyI.Enemy, moveDistance float64, playerPosX float64, playerPosY float64, enemiesThatWantToAttackCh chan<- *enemyI.Enemy) {
 	for i := range enemies {
 		enemy := &enemies[i]
 		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
