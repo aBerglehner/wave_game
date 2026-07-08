@@ -294,6 +294,8 @@ func updatePartOfEnemyProjectiles(start int, end int) {
 func handleEnemyProjectilesCollisions(g *Game) {
 	playerXCenter := g.posX + playerImageSize/2
 	playerYCenter := g.posY + playerImageSize/2
+	playerSizeRadius := float32(math.Sqrt(playerImageSize))
+
 	// count is never 0 as len(enemyProjectiles) == min enemies on display
 	count := len(enemyProjectiles)
 	workers := 6 // runtime.GOMAXPROCS(0)
@@ -318,7 +320,8 @@ func handleEnemyProjectilesCollisions(g *Game) {
 			for i := start; i < end; i += 1 {
 				if enemyProjectiles[i].Alive {
 					project := enemyProjectiles[i]
-					if projectileHitsPlayer(project.OldPos, project.CurPos, enemyI.Pos{X: playerXCenter, Y: playerYCenter}, float64(project.Radius*2)) {
+					hitBoxRadius := float64(project.Radius + playerSizeRadius)
+					if projectileHitsPlayer(project.OldPos, project.CurPos, enemyI.Pos{X: playerXCenter, Y: playerYCenter}, hitBoxRadius) {
 						fmt.Printf("\"projectile hit\": %v\n", "projectile hit")
 						dmgTakenProjectilesCh <- &enemyProjectiles[i]
 					}
@@ -339,8 +342,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 	}
 }
 
-// TODO: optimize hit accuracy
-func projectileHitsPlayer(oldPos enemyI.Pos, newPos enemyI.Pos, player enemyI.Pos, radius float64) bool {
+func projectileHitsPlayer(oldPos enemyI.Pos, newPos enemyI.Pos, player enemyI.Pos, hitBoxRadius float64) bool {
 	dx := newPos.X - oldPos.X
 	dy := newPos.Y - oldPos.Y
 
@@ -365,7 +367,7 @@ func projectileHitsPlayer(oldPos enemyI.Pos, newPos enemyI.Pos, player enemyI.Po
 	distX := player.X - closestX
 	distY := player.Y - closestY
 
-	return distX*distX+distY*distY <= radius*radius
+	return distX*distX+distY*distY <= hitBoxRadius*hitBoxRadius
 }
 
 // Draw draws the game screen.
