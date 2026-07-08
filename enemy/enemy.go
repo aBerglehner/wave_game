@@ -189,10 +189,12 @@ type EnemyProjectile struct {
 	Velocity Pos
 	Dmg      int
 	Alive    bool
+	Radius   float32
 }
 
 func NewEnemyProjectile(pos Pos, velocity Pos, dmg int) EnemyProjectile {
-	return EnemyProjectile{OldPos: pos, CurPos: pos, Velocity: velocity, Dmg: dmg, Alive: true}
+	// TODO: maybe projectile size constant or lvl lookup
+	return EnemyProjectile{OldPos: pos, CurPos: pos, Velocity: velocity, Dmg: dmg, Alive: true, Radius: 5}
 }
 
 func EnemyProjectilesInit(size int) []EnemyProjectile {

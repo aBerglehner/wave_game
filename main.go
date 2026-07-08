@@ -140,6 +140,7 @@ func (g *Game) Update() error {
 	}
 
 	updateEnemyProjectiles()
+	handleEnemyProjectilesCollisions(g)
 
 	// go logFpsAvg()
 	// log.Printf("update took %v", time.Since(start))
@@ -281,8 +282,8 @@ func updatePartOfEnemyProjectiles(start int, end int) {
 			vel := enemyProjectiles[i].Velocity
 			newPosX := pos.X + (vel.X / FpsTarget)
 			newPosY := pos.Y + (vel.Y / FpsTarget)
+			enemyProjectiles[i].OldPos = enemyI.Pos{X: pos.X, Y: pos.Y}
 			enemyProjectiles[i].CurPos = enemyI.Pos{X: newPosX, Y: newPosY}
-			// TODO: update old pos
 
 			if newPosX < 0 || newPosX > ScreenWidth {
 				enemyProjectiles[i].Alive = false
@@ -292,6 +293,81 @@ func updatePartOfEnemyProjectiles(start int, end int) {
 			}
 		}
 	}
+}
+
+func handleEnemyProjectilesCollisions(g *Game) {
+	playerXCenter := g.posX + playerImageSize/2
+	playerYCenter := g.posY + playerImageSize/2
+	// count is never 0 as len(enemyProjectiles) == min enemies on display
+	count := len(enemyProjectiles)
+	workers := 6 // runtime.GOMAXPROCS(0)
+	workForEach := count / workers
+	// return early if there are so less
+	if workForEach == 0 {
+		updatePartOfEnemyProjectiles(0, count)
+		return
+	}
+
+	var wg sync.WaitGroup
+	dmgTakenProjectilesCh := make(chan enemyI.EnemyProjectile)
+	i := 0
+	for i = 0; i < count; i += workForEach {
+		// this handles the left overs
+		max := min(i+workForEach, count)
+
+		wg.Add(1)
+		go func(start int, end int) {
+			defer wg.Done()
+
+			for i := start; i < end; i += 1 {
+				if enemyProjectiles[i].Alive {
+					project := enemyProjectiles[i]
+					if projectileHitsPlayer(project.OldPos, project.CurPos, enemyI.Pos{X: playerXCenter, Y: playerYCenter}, float64(project.Radius*2)) {
+						fmt.Printf("\"projectile hit\": %v\n", "projectile hit")
+						dmgTakenProjectilesCh <- project
+					}
+				}
+			}
+		}(i, max)
+	}
+	go func() {
+		wg.Wait()
+		close(dmgTakenProjectilesCh)
+	}()
+
+	for v := range dmgTakenProjectilesCh {
+		g.damageTakenTime = time.Now()
+		g.health -= v.Dmg
+	}
+}
+
+// TODO: optimize hit accuracy
+func projectileHitsPlayer(oldPos enemyI.Pos, newPos enemyI.Pos, player enemyI.Pos, radius float64) bool {
+	dx := newPos.X - oldPos.X
+	dy := newPos.Y - oldPos.Y
+
+	// position along the projectile's path
+	// 0 = start
+	// 0.5 = halfway
+	// 1 = end
+	// <0 = before the start
+	// >1 = after the end
+	t := ((player.X-oldPos.X)*dx + (player.Y-oldPos.Y)*dy) / (dx*dx + dy*dy)
+
+	// Clamp to segment
+	if t < 0 {
+		t = 0
+	} else if t > 1 {
+		t = 1
+	}
+
+	closestX := oldPos.X + t*dx
+	closestY := oldPos.Y + t*dy
+
+	distX := player.X - closestX
+	distY := player.Y - closestY
+
+	return distX*distX+distY*distY <= radius*radius
 }
 
 // Draw draws the game screen.
@@ -317,7 +393,7 @@ func drawEnemyProjectiles(screen *ebiten.Image) {
 		if enemyProjectiles[i].Alive {
 			var cx float32 = float32(enemyProjectiles[i].CurPos.X)
 			var cy float32 = float32(enemyProjectiles[i].CurPos.Y)
-			var r float32 = 5
+			var r float32 = enemyProjectiles[i].Radius
 			vector.FillCircle(screen, cx, cy, r, color.RGBA{150, 0, 0, 150}, false)
 		}
 	}
