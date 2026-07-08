@@ -322,7 +322,6 @@ func handleEnemyProjectilesCollisions(g *Game) {
 					project := enemyProjectiles[i]
 					hitBoxRadius := float64(project.Radius + playerSizeRadius)
 					if projectileHitsPlayer(project.OldPos, project.CurPos, enemyI.Pos{X: playerXCenter, Y: playerYCenter}, hitBoxRadius) {
-						fmt.Printf("\"projectile hit\": %v\n", "projectile hit")
 						dmgTakenProjectilesCh <- &enemyProjectiles[i]
 					}
 				}
