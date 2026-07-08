@@ -341,6 +341,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 	}
 }
 
+// TODO: hitbox head ball comming from the left does not work
 func projectileHitsPlayer(oldPos enemyI.Pos, newPos enemyI.Pos, player enemyI.Pos, hitBoxRadius float64) bool {
 	dx := newPos.X - oldPos.X
 	dy := newPos.Y - oldPos.Y
