@@ -215,10 +215,6 @@ func attackFromEnemy(enemy *enemy.Enemy, playerPosX float64, playerPosY float64,
 
 			// just send them and handle them afterwards all togehter
 			enemiesThatWantToAttackCh <- enemy
-
-			// TODO: do this on collision []EnemyProjectile
-			// g.damageTakenTime = time.Now()
-			// g.health -= enemy.Dmg
 		}
 	}
 }
@@ -309,7 +305,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 	}
 
 	var wg sync.WaitGroup
-	dmgTakenProjectilesCh := make(chan enemyI.EnemyProjectile)
+	dmgTakenProjectilesCh := make(chan *enemyI.EnemyProjectile)
 	i := 0
 	for i = 0; i < count; i += workForEach {
 		// this handles the left overs
@@ -324,7 +320,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 					project := enemyProjectiles[i]
 					if projectileHitsPlayer(project.OldPos, project.CurPos, enemyI.Pos{X: playerXCenter, Y: playerYCenter}, float64(project.Radius*2)) {
 						fmt.Printf("\"projectile hit\": %v\n", "projectile hit")
-						dmgTakenProjectilesCh <- project
+						dmgTakenProjectilesCh <- &enemyProjectiles[i]
 					}
 				}
 			}
@@ -338,6 +334,8 @@ func handleEnemyProjectilesCollisions(g *Game) {
 	for v := range dmgTakenProjectilesCh {
 		g.damageTakenTime = time.Now()
 		g.health -= v.Dmg
+		// otherwise it will make dmg every tick
+		v.Alive = false
 	}
 }
 
