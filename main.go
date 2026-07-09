@@ -70,7 +70,7 @@ var (
 var (
 	// 0 indexed
 	enemy_images     []*ebiten.Image
-	enemyProjectiles []projectile.EnemyProjectile
+	enemyProjectiles []projectile.Projectile
 )
 
 // 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
@@ -232,7 +232,7 @@ func createEnemyProjectile(enemy *enemyI.Enemy, g *Game) {
 	doublePoolNeeded := true
 	for i := range enemyProjectiles {
 		if !enemyProjectiles[i].Alive {
-			enemyProjectiles[i] = projectile.NewEnemyProjectile(projectile.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
+			enemyProjectiles[i] = projectile.NewProjectile(projectile.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
 			doublePoolNeeded = false
 			break
 		}
@@ -241,7 +241,7 @@ func createEnemyProjectile(enemy *enemyI.Enemy, g *Game) {
 	// yes this will skip one attack -> but this(bug) is ok to have 1 attack out of a shit ton not happening
 	if doublePoolNeeded {
 		fmt.Printf("double pool needed current len(enemyProjectiles): %v\n", len(enemyProjectiles))
-		enemyProjectiles = append(enemyProjectiles, projectile.EnemyProjectilesInit(len(enemyProjectiles))...)
+		enemyProjectiles = append(enemyProjectiles, projectile.ProjectilesInit(len(enemyProjectiles))...)
 	}
 }
 
@@ -307,7 +307,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 	}
 
 	var wg sync.WaitGroup
-	dmgTakenProjectilesCh := make(chan *projectile.EnemyProjectile)
+	dmgTakenProjectilesCh := make(chan *projectile.Projectile)
 	i := 0
 	for i = 0; i < count; i += workForEach {
 		// this handles the left overs
@@ -572,7 +572,7 @@ func init() {
 	}
 
 	// create the init pool of enemyProjectiles
-	enemyProjectiles = projectile.EnemyProjectilesInit(enemyI.EnemiesCount)
+	enemyProjectiles = projectile.ProjectilesInit(enemyI.EnemiesCount)
 }
 
 func gameInit() *Game {

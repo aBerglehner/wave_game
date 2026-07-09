@@ -5,7 +5,7 @@ type Pos struct {
 	Y float64
 }
 
-type EnemyProjectile struct {
+type Projectile struct {
 	OldPos Pos
 	CurPos Pos
 	// divide / fps -> to get real number
@@ -15,15 +15,15 @@ type EnemyProjectile struct {
 	Radius   float32
 }
 
-func NewEnemyProjectile(pos Pos, velocity Pos, dmg int) EnemyProjectile {
+func NewProjectile(pos Pos, velocity Pos, dmg int) Projectile {
 	// TODO: maybe projectile size constant or lvl lookup
-	return EnemyProjectile{OldPos: pos, CurPos: pos, Velocity: velocity, Dmg: dmg, Alive: true, Radius: 5}
+	return Projectile{OldPos: pos, CurPos: pos, Velocity: velocity, Dmg: dmg, Alive: true, Radius: 5}
 }
 
-func EnemyProjectilesInit(size int) []EnemyProjectile {
-	var result []EnemyProjectile
+func ProjectilesInit(size int) []Projectile {
+	var result []Projectile
 	for i := 0; i < size; i++ {
-		ep := EnemyProjectile{}
+		ep := Projectile{}
 		result = append(result, ep)
 	}
 	return result
