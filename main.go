@@ -52,7 +52,7 @@ var (
 	movementSpeed    float64 = 100
 )
 
-// player -> protagonist
+// player
 const playerImageSize = 64 // pixels
 
 var (
@@ -64,6 +64,7 @@ var (
 		image.Rect(0, 64, 64, 128),   // bottom-left
 		image.Rect(64, 64, 128, 128), // bottom-right
 	}
+	playerProjectiles []projectile.Projectile
 )
 
 // enemies
@@ -321,7 +322,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 				if enemyProjectiles[i].Alive {
 					project := enemyProjectiles[i]
 					hitBoxRadius := float64(project.Radius + playerSizeRadius)
-					if projectileHitsPlayer(project.OldPos, project.CurPos, projectile.Pos{X: playerXCenter, Y: playerYCenter}, hitBoxRadius) {
+					if projectileCollision(project.OldPos, project.CurPos, projectile.Pos{X: playerXCenter, Y: playerYCenter}, hitBoxRadius) {
 						dmgTakenProjectilesCh <- &enemyProjectiles[i]
 					}
 				}
@@ -342,7 +343,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 }
 
 // TODO: hitbox head ball comming from the left does not work
-func projectileHitsPlayer(oldPos projectile.Pos, newPos projectile.Pos, player projectile.Pos, hitBoxRadius float64) bool {
+func projectileCollision(oldPos projectile.Pos, newPos projectile.Pos, testPos projectile.Pos, hitBoxRadius float64) bool {
 	dx := newPos.X - oldPos.X
 	dy := newPos.Y - oldPos.Y
 
@@ -352,7 +353,7 @@ func projectileHitsPlayer(oldPos projectile.Pos, newPos projectile.Pos, player p
 	// 1 = end
 	// <0 = before the start
 	// >1 = after the end
-	t := ((player.X-oldPos.X)*dx + (player.Y-oldPos.Y)*dy) / (dx*dx + dy*dy)
+	t := ((testPos.X-oldPos.X)*dx + (testPos.Y-oldPos.Y)*dy) / (dx*dx + dy*dy)
 
 	// Clamp to segment
 	if t < 0 {
@@ -364,8 +365,8 @@ func projectileHitsPlayer(oldPos projectile.Pos, newPos projectile.Pos, player p
 	closestX := oldPos.X + t*dx
 	closestY := oldPos.Y + t*dy
 
-	distX := player.X - closestX
-	distY := player.Y - closestY
+	distX := testPos.X - closestX
+	distY := testPos.Y - closestY
 
 	return distX*distX+distY*distY <= hitBoxRadius*hitBoxRadius
 }
@@ -573,6 +574,8 @@ func init() {
 
 	// create the init pool of enemyProjectiles
 	enemyProjectiles = projectile.ProjectilesInit(enemyI.EnemiesCount)
+	// create the init pool of playerProjectiles
+	playerProjectiles = projectile.ProjectilesInit(enemyI.EnemiesCount)
 }
 
 func gameInit() *Game {
