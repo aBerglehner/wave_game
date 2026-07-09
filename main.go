@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/alex/ebiten_tutorial/constants"
-	"github.com/alex/ebiten_tutorial/enemy"
 	enemyI "github.com/alex/ebiten_tutorial/enemy"
 	"github.com/alex/ebiten_tutorial/projectile"
 	"github.com/alex/ebiten_tutorial/utils"
@@ -204,7 +203,7 @@ func updateEnemies(enemies []enemyI.Enemy, moveDistance float64, playerPosX floa
 	}
 }
 
-func attackFromEnemy(enemy *enemy.Enemy, playerPosX float64, playerPosY float64, enemiesThatWantToAttackCh chan<- *enemyI.Enemy) {
+func attackFromEnemy(enemy *enemyI.Enemy, playerPosX float64, playerPosY float64, enemiesThatWantToAttackCh chan<- *enemyI.Enemy) {
 	attackRange2 := enemy.AttackRange * enemy.AttackRange
 	posXDiff := enemy.PosX - playerPosX
 	posYDiff := enemy.PosY - playerPosY
@@ -221,7 +220,7 @@ func attackFromEnemy(enemy *enemy.Enemy, playerPosX float64, playerPosY float64,
 }
 
 // createEnemyProjectile: a projectile in the direction to the player is created. It is added to the global var []enemyProjectiles
-func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
+func createEnemyProjectile(enemy *enemyI.Enemy, g *Game) {
 	playerX := g.posX + playerImageSize/2
 	playerY := g.posY + playerImageSize/2
 	dx := playerX - enemy.PosX
@@ -577,7 +576,7 @@ func init() {
 }
 
 func gameInit() *Game {
-	enemies := enemy.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
+	enemies := enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
 	return &Game{posX: 10, posY: 10, health: 100, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
 }
 
