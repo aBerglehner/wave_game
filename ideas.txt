@@ -1,3 +1,4 @@
 -able to jump on every lvl (so I can check bugs fast)
 -enemies have a certain move radius and extra a certain attack range
 -menu options see -> https://ebitengine.org/en/examples/vector.html
+-display health and exp as a bar top left (red bar black border -> health, green bar black border -> exp)
