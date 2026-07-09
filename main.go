@@ -16,6 +16,7 @@ import (
 	"github.com/alex/ebiten_tutorial/constants"
 	"github.com/alex/ebiten_tutorial/enemy"
 	enemyI "github.com/alex/ebiten_tutorial/enemy"
+	"github.com/alex/ebiten_tutorial/projectile"
 	"github.com/alex/ebiten_tutorial/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -70,7 +71,7 @@ var (
 var (
 	// 0 indexed
 	enemy_images     []*ebiten.Image
-	enemyProjectiles []enemyI.EnemyProjectile
+	enemyProjectiles []projectile.EnemyProjectile
 )
 
 // 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
@@ -226,13 +227,13 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	dx := playerX - enemy.PosX
 	dy := playerY - enemy.PosY
 	length := math.Sqrt(dx*dx + dy*dy)
-	dir := enemyI.Pos{X: dx / length, Y: dy / length}
-	velocity := enemyI.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
+	dir := projectile.Pos{X: dx / length, Y: dy / length}
+	velocity := projectile.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
 	// find not alive enemyProjectiles to use
 	doublePoolNeeded := true
 	for i := range enemyProjectiles {
 		if !enemyProjectiles[i].Alive {
-			enemyProjectiles[i] = enemyI.NewEnemyProjectile(enemyI.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
+			enemyProjectiles[i] = projectile.NewEnemyProjectile(projectile.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
 			doublePoolNeeded = false
 			break
 		}
@@ -241,7 +242,7 @@ func createEnemyProjectile(enemy *enemy.Enemy, g *Game) {
 	// yes this will skip one attack -> but this(bug) is ok to have 1 attack out of a shit ton not happening
 	if doublePoolNeeded {
 		fmt.Printf("double pool needed current len(enemyProjectiles): %v\n", len(enemyProjectiles))
-		enemyProjectiles = append(enemyProjectiles, enemyI.EnemyProjectilesInit(len(enemyProjectiles))...)
+		enemyProjectiles = append(enemyProjectiles, projectile.EnemyProjectilesInit(len(enemyProjectiles))...)
 	}
 }
 
@@ -278,8 +279,8 @@ func updatePartOfEnemyProjectiles(start int, end int) {
 			vel := enemyProjectiles[i].Velocity
 			newPosX := pos.X + (vel.X / FpsTarget)
 			newPosY := pos.Y + (vel.Y / FpsTarget)
-			enemyProjectiles[i].OldPos = enemyI.Pos{X: pos.X, Y: pos.Y}
-			enemyProjectiles[i].CurPos = enemyI.Pos{X: newPosX, Y: newPosY}
+			enemyProjectiles[i].OldPos = projectile.Pos{X: pos.X, Y: pos.Y}
+			enemyProjectiles[i].CurPos = projectile.Pos{X: newPosX, Y: newPosY}
 
 			if newPosX < 0 || newPosX > ScreenWidth {
 				enemyProjectiles[i].Alive = false
@@ -307,7 +308,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 	}
 
 	var wg sync.WaitGroup
-	dmgTakenProjectilesCh := make(chan *enemyI.EnemyProjectile)
+	dmgTakenProjectilesCh := make(chan *projectile.EnemyProjectile)
 	i := 0
 	for i = 0; i < count; i += workForEach {
 		// this handles the left overs
@@ -321,7 +322,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 				if enemyProjectiles[i].Alive {
 					project := enemyProjectiles[i]
 					hitBoxRadius := float64(project.Radius + playerSizeRadius)
-					if projectileHitsPlayer(project.OldPos, project.CurPos, enemyI.Pos{X: playerXCenter, Y: playerYCenter}, hitBoxRadius) {
+					if projectileHitsPlayer(project.OldPos, project.CurPos, projectile.Pos{X: playerXCenter, Y: playerYCenter}, hitBoxRadius) {
 						dmgTakenProjectilesCh <- &enemyProjectiles[i]
 					}
 				}
@@ -342,7 +343,7 @@ func handleEnemyProjectilesCollisions(g *Game) {
 }
 
 // TODO: hitbox head ball comming from the left does not work
-func projectileHitsPlayer(oldPos enemyI.Pos, newPos enemyI.Pos, player enemyI.Pos, hitBoxRadius float64) bool {
+func projectileHitsPlayer(oldPos projectile.Pos, newPos projectile.Pos, player projectile.Pos, hitBoxRadius float64) bool {
 	dx := newPos.X - oldPos.X
 	dy := newPos.Y - oldPos.Y
 
@@ -572,7 +573,7 @@ func init() {
 	}
 
 	// create the init pool of enemyProjectiles
-	enemyProjectiles = enemyI.EnemyProjectilesInit(enemyI.EnemiesCount)
+	enemyProjectiles = projectile.EnemyProjectilesInit(enemyI.EnemiesCount)
 }
 
 func gameInit() *Game {
