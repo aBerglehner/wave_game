@@ -250,12 +250,8 @@ func updateEnemyProjectiles() {
 	// count is never 0 as len(enemyProjectiles) == min enemies on display
 	count := len(enemyProjectiles)
 	workers := 6 // runtime.GOMAXPROCS(0)
+	// workForEach will never be 0 -> as len(enemyProjectiles) -> never shrinks only alive = false
 	workForEach := count / workers
-	// return early if there are so less
-	if workForEach == 0 {
-		updatePartOfEnemyProjectiles(0, count)
-		return
-	}
 
 	var wg sync.WaitGroup
 	i := 0
@@ -300,12 +296,8 @@ func handleEnemyProjectilesCollisions(g *Game) {
 	// count is never 0 as len(enemyProjectiles) == min enemies on display
 	count := len(enemyProjectiles)
 	workers := 6 // runtime.GOMAXPROCS(0)
+	// workForEach will never be 0 -> as len(enemyProjectiles) -> never shrinks only alive = false
 	workForEach := count / workers
-	// return early if there are so less
-	if workForEach == 0 {
-		updatePartOfEnemyProjectiles(0, count)
-		return
-	}
 
 	var wg sync.WaitGroup
 	dmgTakenProjectilesCh := make(chan *projectile.Projectile)
