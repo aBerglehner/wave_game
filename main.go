@@ -75,7 +75,7 @@ var (
 )
 
 // 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
-var expLvlLookup [constants.LvlMax]int = [...]int{
+var playerExpLvlLookup [constants.LvlMax]int = [...]int{
 	100,         // 1
 	1000,        // 2
 	10_000,      // 3
@@ -88,6 +88,20 @@ var expLvlLookup [constants.LvlMax]int = [...]int{
 	10_000_0000, // 10
 }
 
+// ms
+var playerAttackSpeedLookup [constants.LvlMax]int = [...]int{
+	800, // 1
+	700, // 2
+	600, // 3
+	500, // 4
+	400, // 5
+	300, // 6
+	200, // 7
+	100, // 8
+	80,  // 9
+	60,  // 10
+}
+
 // Game implements ebiten.Game interface.
 type Game struct {
 	posX         float64
@@ -98,9 +112,28 @@ type Game struct {
 	level        int
 	exp          int
 	expNeeded    int
-	enemies      []enemyI.Enemy
+	// ms
+	attackSpeed int
+	lastAttack  time.Time
 	// this is for the animation of dmg taken
 	damageTakenTime time.Time
+	enemies         []enemyI.Enemy
+}
+
+func initGame() *Game {
+	enemies := enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
+	return &Game{
+		posX:         10,
+		posY:         10,
+		health:       100,
+		dmg:          1,
+		healthAbsorb: 0.01,
+		level:        1,
+		exp:          0,
+		expNeeded:    playerExpLvlLookup[0],
+		attackSpeed:  playerAttackSpeedLookup[0],
+		enemies:      enemies,
+	}
 }
 
 // Update proceeds the game state.
@@ -146,6 +179,32 @@ func (g *Game) Update() error {
 	// go logFpsAvg()
 	// log.Printf("update took %v", time.Since(start))
 	return nil
+}
+
+// createPlayerProjectile -> will create new projectiles every n time
+func createPlayerProjectile(enemy *enemyI.Enemy, g *Game) {
+	playerX := g.posX + playerImageSize/2
+	playerY := g.posY + playerImageSize/2
+	dx := playerX - enemy.PosX
+	dy := playerY - enemy.PosY
+	length := math.Sqrt(dx*dx + dy*dy)
+	dir := projectile.Pos{X: dx / length, Y: dy / length}
+	velocity := projectile.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
+	// find not alive enemyProjectiles to use
+	doublePoolNeeded := true
+	for i := range enemyProjectiles {
+		if !enemyProjectiles[i].Alive {
+			enemyProjectiles[i] = projectile.NewProjectile(projectile.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
+			doublePoolNeeded = false
+			break
+		}
+	}
+
+	// yes this will skip one attack -> but this(bug) is ok to have 1 attack out of a shit ton not happening
+	if doublePoolNeeded {
+		fmt.Printf("double pool needed current len(enemyProjectiles): %v\n", len(enemyProjectiles))
+		enemyProjectiles = append(enemyProjectiles, projectile.ProjectilesInit(len(enemyProjectiles))...)
+	}
 }
 
 func movementController(g *Game) (moveDistance float64) {
@@ -571,8 +630,7 @@ func init() {
 }
 
 func gameInit() *Game {
-	enemies := enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
-	return &Game{posX: 10, posY: 10, health: 100, dmg: 1, healthAbsorb: 0.01, level: 1, exp: 0, expNeeded: expLvlLookup[1], enemies: enemies}
+	return initGame()
 }
 
 func main() {
