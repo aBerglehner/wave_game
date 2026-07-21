@@ -92,6 +92,9 @@ var (
 	playerAttackSpeedLookup [constants.LvlMax]int = [...]int{800, 700, 600, 500, 400, 300, 200, 100, 80, 60}
 	// pixels per second
 	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{70, 80, 90, 100, 110, 120, 130, 140, 150, 160}
+	playerDmgLookup             [constants.LvlMax]float32 = [...]float32{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
+	// 0.01 == 1% | 0.1 == 10%
+	playerHealthAbsorbLookup [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
 )
 
 // Game implements ebiten.Game interface.
@@ -120,8 +123,8 @@ func initGame() *Game {
 		posX:            10,
 		posY:            10,
 		health:          100,
-		dmg:             1,
-		healthAbsorb:    0.01,
+		dmg:             playerDmgLookup[0],
+		healthAbsorb:    playerHealthAbsorbLookup[0],
 		level:           1,
 		exp:             0,
 		expNeeded:       playerExpLvlLookup[0],
@@ -180,12 +183,14 @@ func (g *Game) Update() error {
 func createPlayerProjectile(enemy *enemyI.Enemy, g *Game) {
 	playerX := g.posX + playerImageSize/2
 	playerY := g.posY + playerImageSize/2
+	// we need to switch this
+	// and than playerX needs to be the direction the player is looking
 	dx := playerX - enemy.PosX
 	dy := playerY - enemy.PosY
 	length := math.Sqrt(dx*dx + dy*dy)
 	dir := projectile.Pos{X: dx / length, Y: dy / length}
 	velocity := projectile.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
-	// find not alive enemyProjectiles to use
+	// find not alive playerProjectiles to use
 	doublePoolNeeded := true
 	for i := range playerProjectiles {
 		if !playerProjectiles[i].Alive {
