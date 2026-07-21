@@ -172,11 +172,12 @@ func (g *Game) Update() error {
 		createEnemyProjectile(c, g)
 	}
 
-	updateEnemyProjectiles()
+	updateProjectilesParallel(len(enemyProjectiles), 6, updatePartOfEnemyProjectiles)
 	handleEnemyProjectilesCollisions(g)
 
 	// player
 	playerAttack(g)
+	updateProjectilesParallel(len(playerProjectiles), 6, updatePartOfPlayerProjectiles)
 
 	// go logFpsAvg()
 	// log.Printf("update took %v", time.Since(start))
@@ -187,6 +188,7 @@ func playerAttack(g *Game) {
 	cur := time.Now()
 	deltaTime := cur.Sub(g.lastAttack).Milliseconds()
 	if deltaTime > g.attackSpeed {
+		g.lastAttack = cur
 		createPlayerProjectile(g)
 	}
 }
@@ -329,23 +331,17 @@ func createEnemyProjectile(enemy *enemyI.Enemy, g *Game) {
 	}
 }
 
-func updateEnemyProjectiles() {
-	// count is never 0 as len(enemyProjectiles) == min enemies on display
-	count := len(enemyProjectiles)
-	workers := 6 // runtime.GOMAXPROCS(0)
-	// workForEach will never be 0 -> as len(enemyProjectiles) -> never shrinks only alive = false
+func updateProjectilesParallel(count, workers int, fn func(start, end int)) {
 	workForEach := count / workers
 
 	var wg sync.WaitGroup
-	i := 0
-	for i = 0; i < count; i += workForEach {
-		// this handles the left overs
+	for i := 0; i < count; i += workForEach {
 		max := min(i+workForEach, count)
 
 		wg.Add(1)
-		go func(start int, end int) {
+		go func(start, end int) {
 			defer wg.Done()
-			updatePartOfEnemyProjectiles(start, end)
+			fn(start, end)
 		}(i, max)
 	}
 	wg.Wait()
@@ -366,6 +362,26 @@ func updatePartOfEnemyProjectiles(start int, end int) {
 			}
 			if newPosY < 0 || newPosY > float64(MaxUsableScreenHeight) {
 				enemyProjectiles[i].Alive = false
+			}
+		}
+	}
+}
+
+func updatePartOfPlayerProjectiles(start int, end int) {
+	for i := start; i < end; i += 1 {
+		if playerProjectiles[i].Alive {
+			pos := playerProjectiles[i].CurPos
+			vel := playerProjectiles[i].Velocity
+			newPosX := pos.X + (vel.X / FpsTarget)
+			newPosY := pos.Y + (vel.Y / FpsTarget)
+			playerProjectiles[i].OldPos = projectile.Pos{X: pos.X, Y: pos.Y}
+			playerProjectiles[i].CurPos = projectile.Pos{X: newPosX, Y: newPosY}
+
+			if newPosX < 0 || newPosX > ScreenWidth {
+				playerProjectiles[i].Alive = false
+			}
+			if newPosY < 0 || newPosY > float64(MaxUsableScreenHeight) {
+				playerProjectiles[i].Alive = false
 			}
 		}
 	}
@@ -455,8 +471,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	drawEnemies(g, screen)
 	drawEnemyProjectiles(screen)
+
 	// we draw player after enemies so the image is on top
 	drawPlayer(g, screen)
+	drawPlayerProjectiles(screen)
 
 	statsBottom(g, screen)
 
@@ -471,6 +489,17 @@ func drawEnemyProjectiles(screen *ebiten.Image) {
 			var cy float32 = float32(enemyProjectiles[i].CurPos.Y)
 			var r float32 = enemyProjectiles[i].Radius
 			vector.FillCircle(screen, cx, cy, r, color.RGBA{150, 0, 0, 150}, false)
+		}
+	}
+}
+
+func drawPlayerProjectiles(screen *ebiten.Image) {
+	for i := range playerProjectiles {
+		if playerProjectiles[i].Alive {
+			var cx float32 = float32(playerProjectiles[i].CurPos.X)
+			var cy float32 = float32(playerProjectiles[i].CurPos.Y)
+			var r float32 = playerProjectiles[i].Radius
+			vector.FillCircle(screen, cx, cy, r, color.RGBA{0, 180, 255, 200}, false)
 		}
 	}
 }
