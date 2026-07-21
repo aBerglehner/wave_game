@@ -52,6 +52,13 @@ var (
 	movementSpeed    float64 = 100
 )
 
+// enemies
+var (
+	// 0 indexed
+	enemy_images     []*ebiten.Image
+	enemyProjectiles []projectile.Projectile
+)
+
 // player
 const playerImageSize = 64 // pixels
 
@@ -65,13 +72,6 @@ var (
 		image.Rect(64, 64, 128, 128), // bottom-right
 	}
 	playerProjectiles []projectile.Projectile
-)
-
-// enemies
-var (
-	// 0 indexed
-	enemy_images     []*ebiten.Image
-	enemyProjectiles []projectile.Projectile
 )
 
 // 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
