@@ -89,10 +89,10 @@ var (
 		10_000_0000, // 10
 	}
 	// ms
-	playerAttackSpeedLookup [constants.LvlMax]int = [...]int{800, 700, 600, 500, 400, 300, 200, 100, 80, 60}
+	playerAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{800, 700, 600, 500, 400, 300, 200, 100, 80, 60}
 	// pixels per second
 	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{70, 80, 90, 100, 110, 120, 130, 140, 150, 160}
-	playerDmgLookup             [constants.LvlMax]float32 = [...]float32{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
+	playerDmgLookup             [constants.LvlMax]int     = [...]int{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
 	// 0.01 == 1% | 0.1 == 10%
 	playerHealthAbsorbLookup [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
 )
@@ -102,13 +102,13 @@ type Game struct {
 	posX         float64
 	posY         float64
 	health       int
-	dmg          float32
+	dmg          int
 	healthAbsorb float32
 	level        int
 	exp          int
 	expNeeded    int
-	// ms
-	attackSpeed int
+	// ms -> on which a player can attack
+	attackSpeed int64
 	lastAttack  time.Time
 	// pixels per second
 	projectileSpeed float64
@@ -148,6 +148,7 @@ func (g *Game) Update() error {
 	playerPosX := g.posX
 	playerPosY := g.posY
 
+	// enemies
 	enemiesThatWantToAttackCh := make(chan *enemyI.Enemy)
 	var wg sync.WaitGroup
 
@@ -174,27 +175,50 @@ func (g *Game) Update() error {
 	updateEnemyProjectiles()
 	handleEnemyProjectilesCollisions(g)
 
+	// player
+	playerAttack(g)
+
 	// go logFpsAvg()
 	// log.Printf("update took %v", time.Since(start))
 	return nil
 }
 
-// createPlayerProjectile -> will create new projectiles every n time
-func createPlayerProjectile(enemy *enemyI.Enemy, g *Game) {
+func playerAttack(g *Game) {
+	cur := time.Now()
+	deltaTime := cur.Sub(g.lastAttack).Milliseconds()
+	if deltaTime > g.attackSpeed {
+		createPlayerProjectile(g)
+	}
+}
+
+// createPlayerProjectile -> will create new projectiles every time
+func createPlayerProjectile(g *Game) {
 	playerX := g.posX + playerImageSize/2
 	playerY := g.posY + playerImageSize/2
-	// we need to switch this
-	// and than playerX needs to be the direction the player is looking
-	dx := playerX - enemy.PosX
-	dy := playerY - enemy.PosY
+
+	// check which direction the player is looking -> there we shoot
+	var posX float64 = 0
+	var posY float64 = 0
+	if playerCurrentFrame == 1 { // up
+		posY += 10
+	} else if playerCurrentFrame == 0 { // down
+		posY -= 10
+	} else if playerCurrentFrame == 2 { // left
+		posX -= 10
+	} else if playerCurrentFrame == 3 { // right
+		posX += 10
+	}
+
+	dx := playerX - posX
+	dy := playerY - posY
 	length := math.Sqrt(dx*dx + dy*dy)
 	dir := projectile.Pos{X: dx / length, Y: dy / length}
-	velocity := projectile.Pos{X: dir.X * enemy.ProjectileSpeed, Y: dir.Y * enemy.ProjectileSpeed}
+	velocity := projectile.Pos{X: dir.X * g.projectileSpeed, Y: dir.Y * g.projectileSpeed}
 	// find not alive playerProjectiles to use
 	doublePoolNeeded := true
 	for i := range playerProjectiles {
 		if !playerProjectiles[i].Alive {
-			playerProjectiles[i] = projectile.NewProjectile(projectile.Pos{X: enemy.PosX, Y: enemy.PosY}, velocity, enemy.Dmg)
+			playerProjectiles[i] = projectile.NewProjectile(projectile.Pos{X: g.posX, Y: g.posY}, velocity, g.dmg)
 			doublePoolNeeded = false
 			break
 		}
