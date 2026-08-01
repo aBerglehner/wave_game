@@ -199,20 +199,18 @@ func createPlayerProjectile(g *Game) {
 	playerY := g.posY + playerImageSize/2
 
 	// check which direction the player is looking -> there we shoot
-	var posX float64 = 0
-	var posY float64 = 0
+	var dx float64 = 0
+	var dy float64 = 0
 	if playerCurrentFrame == 1 { // up
-		posY += 10
+		dy -= 10
 	} else if playerCurrentFrame == 0 { // down
-		posY -= 10
+		dy += 10
 	} else if playerCurrentFrame == 2 { // left
-		posX -= 10
+		dx -= 10
 	} else if playerCurrentFrame == 3 { // right
-		posX += 10
+		dx += 10
 	}
 
-	dx := playerX - posX
-	dy := playerY - posY
 	length := math.Sqrt(dx*dx + dy*dy)
 	dir := projectile.Pos{X: dx / length, Y: dy / length}
 	velocity := projectile.Pos{X: dir.X * g.projectileSpeed, Y: dir.Y * g.projectileSpeed}
@@ -220,7 +218,7 @@ func createPlayerProjectile(g *Game) {
 	doublePoolNeeded := true
 	for i := range playerProjectiles {
 		if !playerProjectiles[i].Alive {
-			playerProjectiles[i] = projectile.NewProjectile(projectile.Pos{X: g.posX, Y: g.posY}, velocity, g.dmg)
+			playerProjectiles[i] = projectile.NewProjectile(projectile.Pos{X: playerX, Y: playerY}, velocity, g.dmg)
 			doublePoolNeeded = false
 			break
 		}
@@ -619,7 +617,7 @@ func statsBottom(g *Game, screen *ebiten.Image) {
 
 	var statsText []StatsInfo
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp: %d", g.health), 200})
-	statsText = append(statsText, StatsInfo{fmt.Sprintf("dmg: %0.2f", g.dmg), 250})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("dmg: %v", g.dmg), 250})
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp absorb: %d%%", int(g.healthAbsorb*100)), 200})
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("lvl: %v", g.level), 200})
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("exp: %d%%", g.exp*100/g.expNeeded), 100})
