@@ -281,7 +281,6 @@ func updateEnemies(enemies []enemyI.Enemy, moveDistance float64, playerPosX floa
 		enemy := &enemies[i]
 		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
 
-		// TODO: let player attack
 		attackFromEnemy(enemy, playerPosX, playerPosY, enemiesThatWantToAttackCh)
 
 	}
@@ -471,8 +470,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawEnemyProjectiles(screen)
 
 	// we draw player after enemies so the image is on top
-	drawPlayer(g, screen)
 	drawPlayerProjectiles(screen)
+	drawPlayer(g, screen)
 
 	statsBottom(g, screen)
 
