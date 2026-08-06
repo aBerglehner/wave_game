@@ -46,10 +46,11 @@ const (
 )
 
 var (
-	fpsAvg                   = make([]float64, 0, FpsTarget+10)
-	fpsTime                  = time.Now()
-	movementTimePrev         = time.Now()
-	movementSpeed    float64 = 100
+	fpsAvg           = make([]float64, 0, FpsTarget+10)
+	fpsTime          = time.Now()
+	movementTimePrev = time.Now()
+	// TODO: maybe move to Game struct??
+	movementSpeed float64 = 100
 )
 
 // enemies
