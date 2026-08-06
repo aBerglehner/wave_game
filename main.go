@@ -279,12 +279,14 @@ func movementController(g *Game) (moveDistance float64) {
 func updateEnemies(enemies []enemyI.Enemy, g *Game, moveDistance float64, playerPosX float64, playerPosY float64, enemiesThatWantToAttackCh chan<- *enemyI.Enemy) {
 	for i := range enemies {
 		enemy := &enemies[i]
-		enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
+		if enemy.Alive == true {
+			enemy.Patrol(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, moveDistance, FpsTarget)
 
-		attackFromEnemy(enemy, playerPosX, playerPosY, enemiesThatWantToAttackCh)
+			attackFromEnemy(enemy, playerPosX, playerPosY, enemiesThatWantToAttackCh)
 
-		// OPTIMIZE: move it somewhere better
-		handlePlayerProjectilesCollision(enemy, g)
+			// OPTIMIZE: move it somewhere better
+			handlePlayerProjectilesCollision(enemy, g)
+		}
 	}
 }
 
