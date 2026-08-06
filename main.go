@@ -386,12 +386,12 @@ func updatePartOfPlayerProjectiles(start int, end int) {
 	}
 }
 
-// check if Player projectile hit an enemy
+// checks if Player projectile hit an enemy
 func handlePlayerProjectilesCollision(enemy *enemyI.Enemy, g *Game) {
-	// TODO: for enemy -> don't know how
-	enemyXCenter := enemy.PosX + playerImageSize/2
-	enemyYCenter := enemy.PosY + playerImageSize/2
-	enemySizeRadius := float32(math.Sqrt(playerImageSize))
+	// OPTIMIZE: hit point could be improved
+	enemyXCenter := enemy.PosX + enemyI.EnemyImageSize/4
+	enemyYCenter := enemy.PosY + enemyI.EnemyImageSize/4
+	enemySizeRadius := float32(math.Sqrt(enemyI.EnemyImageSize * 1.2))
 
 	alivePlayerProjectiles := getAlivePlayerProjectiles()
 	workers := 6 // runtime.GOMAXPROCS(0)

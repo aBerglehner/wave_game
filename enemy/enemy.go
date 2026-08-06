@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	EnemiesCount = 30
+	EnemiesCount   = 30
+	EnemyImageSize = 112
 )
 
 // 0 indexd -> can all be looked up via -> enemies lvl - 1 -> lvl 1 = index 0
