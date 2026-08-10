@@ -24,6 +24,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
+// TODO: movementSpeed
+// TODO: more attacks for each lvl
+
 //go:embed assets/font.otf
 var fontBytes []byte
 var fontFace *text.GoTextFace
@@ -50,8 +53,6 @@ var (
 	fpsAvg           = make([]float64, 0, FpsTarget+10)
 	fpsTime          = time.Now()
 	movementTimePrev = time.Now()
-	// TODO: maybe move to Game struct??
-	movementSpeed float64 = 100
 )
 
 // enemies
@@ -97,20 +98,22 @@ var (
 	playerDmgLookup             [constants.LvlMax]int     = [...]int{20, 50, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
 	// 0.01 == 1% | 0.1 == 10%
 	// TODO:let it absorb
-	playerHealthAbsorbLookup [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
-	playerHealthLookup       [constants.LvlMax]int     = [...]int{100, 200, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
+	playerHealthAbsorbLookup  [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
+	playerHealthLookup        [constants.LvlMax]int     = [...]int{100, 200, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
+	playerMovementSpeedLookup [constants.LvlMax]float64 = [...]float64{100, 120, 150, 170, 190, 210, 230, 250, 270, 300}
 )
 
 // Game implements ebiten.Game interface.
 type Game struct {
-	posX         float64
-	posY         float64
-	health       int
-	dmg          int
-	healthAbsorb float32
-	level        int
-	exp          int
-	expNeeded    int
+	posX          float64
+	posY          float64
+	health        int
+	dmg           int
+	healthAbsorb  float32
+	level         int
+	exp           int
+	expNeeded     int
+	movementSpeed float64
 	// ms -> on which a player can attack
 	attackSpeed int64
 	lastAttack  time.Time
@@ -132,6 +135,7 @@ func initGame() *Game {
 		level:           1,
 		exp:             0,
 		expNeeded:       playerExpLvlLookup[0],
+		movementSpeed:   playerProjectileSpeedLookup[0],
 		attackSpeed:     playerAttackSpeedLookup[0],
 		projectileSpeed: playerProjectileSpeedLookup[0],
 		enemies:         enemies,
@@ -213,6 +217,7 @@ func updatePlayerStats(g *Game) {
 		g.dmg = playerDmgLookup[lookup]
 		g.attackSpeed = playerAttackSpeedLookup[lookup]
 		g.projectileSpeed = playerProjectileSpeedLookup[lookup]
+		g.movementSpeed = playerMovementSpeedLookup[lookup]
 	}
 }
 
@@ -267,7 +272,7 @@ func movementController(g *Game) (moveDistance float64) {
 	cur := time.Now()
 	deltaTime := cur.Sub(movementTimePrev)
 	movementTimePrev = cur
-	moveDistance = movementSpeed * float64(deltaTime.Seconds())
+	moveDistance = g.movementSpeed * float64(deltaTime.Seconds())
 
 	minDiffToCorner := float64(playerImageSize)
 	// up
