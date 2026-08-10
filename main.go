@@ -10,6 +10,7 @@ import (
 	_ "image/png"
 	"log"
 	"math"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -316,7 +317,10 @@ func updateEnemies(enemies []enemyI.Enemy, g *Game, moveDistance float64, player
 
 			// OPTIMIZE: move it somewhere better
 			handlePlayerProjectilesCollision(enemy, g)
+		} else {
+			enemies[i] = enemyI.EnemyCreate(g.level, rand.Intn(11), ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
 		}
+
 	}
 }
 

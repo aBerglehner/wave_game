@@ -128,17 +128,22 @@ func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64
 
 func EnemyCreateInit(maxWidth float64, maxHeight float64) []Enemy {
 	var enemies []Enemy
+	aroundLvl := 1
 	for i := 0; i < EnemiesCount; i++ {
-		aroundLvl := 1
-		if i%2 == 0 {
-			aroundLvl = 2
-		}
-
-		randomWidth := rand.Float64()*(maxWidth-1) + 1
-		randomHeight := rand.Float64()*(maxHeight-1) + 1
-		enemies = append(enemies, newEnemy(randomWidth, randomHeight, aroundLvl))
+		enemies = append(enemies, EnemyCreate(aroundLvl, i, maxWidth, maxHeight))
 	}
 	return enemies
+}
+
+// randomNum decides based on even or not if created enemy is same lvl or 1 higher. Even == +1 | Odd == +0
+func EnemyCreate(aroundLvl int, randomNum int, maxWidth float64, maxHeight float64) Enemy {
+	if randomNum%2 == 0 {
+		aroundLvl += 1
+	}
+
+	randomWidth := rand.Float64()*(maxWidth-1) + 1
+	randomHeight := rand.Float64()*(maxHeight-1) + 1
+	return newEnemy(randomWidth, randomHeight, aroundLvl)
 }
 
 func LoadEnemyImages(fsys embed.FS, dir string) ([]*ebiten.Image, error) {
