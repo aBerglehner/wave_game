@@ -142,6 +142,8 @@ func initGame() *Game {
 func (g *Game) Update() error {
 	// Write your game's logical update.
 	// start := time.Now()
+	restartGameIfNeeded(g)
+
 	updatePlayerStats(g)
 
 	moveDistance := movementController(g)
@@ -187,6 +189,13 @@ func (g *Game) Update() error {
 	// go logFpsAvg()
 	// log.Printf("update took %v", time.Since(start))
 	return nil
+}
+
+// TODO:
+func restartGameIfNeeded(g *Game) {
+	if g.health <= 0 {
+		// restart game but stay at current lvl??
+	}
 }
 
 func updatePlayerStats(g *Game) {
