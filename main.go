@@ -24,7 +24,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// TODO: more attacks for each lvl
+// TODO: more attacks for each lvl!
 
 //go:embed assets/font.otf
 var fontBytes []byte
@@ -141,6 +141,18 @@ func initGame() *Game {
 	}
 }
 
+func (g *Game) setPlayerLookupStats(lookup int) {
+	g.health = playerHealthLookup[lookup]
+	g.healthAbsorb = playerHealthAbsorbLookup[lookup]
+
+	g.expNeeded = playerExpLvlLookup[lookup]
+
+	g.dmg = playerDmgLookup[lookup]
+	g.attackSpeed = playerAttackSpeedLookup[lookup]
+	g.projectileSpeed = playerProjectileSpeedLookup[lookup]
+	g.movementSpeed = playerMovementSpeedLookup[lookup]
+}
+
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
@@ -195,10 +207,14 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// TODO:
 func restartGameIfNeeded(g *Game) {
+	// TODO:draw a popup???
 	if g.health <= 0 {
-		// restart game but stay at current lvl??
+		// restart game
+		g.enemies = enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
+		g.level = 1
+		g.exp = 0
+		g.setPlayerLookupStats(g.level)
 	}
 }
 
@@ -208,15 +224,7 @@ func updatePlayerStats(g *Game) {
 		g.level += 1
 
 		lookup := g.level - 1
-		g.health = playerHealthLookup[lookup]
-		g.healthAbsorb = playerHealthAbsorbLookup[lookup]
-
-		g.expNeeded = playerExpLvlLookup[lookup]
-
-		g.dmg = playerDmgLookup[lookup]
-		g.attackSpeed = playerAttackSpeedLookup[lookup]
-		g.projectileSpeed = playerProjectileSpeedLookup[lookup]
-		g.movementSpeed = playerMovementSpeedLookup[lookup]
+		g.setPlayerLookupStats(lookup)
 	}
 }
 
