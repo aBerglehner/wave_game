@@ -93,7 +93,7 @@ var (
 	playerAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{800, 700, 600, 500, 400, 300, 200, 100, 80, 60}
 	// pixels per second
 	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{70, 80, 90, 100, 110, 120, 130, 140, 150, 160}
-	playerDmgLookup             [constants.LvlMax]int     = [...]int{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
+	playerDmgLookup             [constants.LvlMax]int     = [...]int{5, 20, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
 	// 0.01 == 1% | 0.1 == 10%
 	playerHealthAbsorbLookup [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
 )
@@ -140,6 +140,8 @@ func initGame() *Game {
 func (g *Game) Update() error {
 	// Write your game's logical update.
 	// start := time.Now()
+	updatePlayerStats(g)
+
 	moveDistance := movementController(g)
 
 	// TODO:load check which monster is alive -> otherwise spawn a new one
@@ -183,6 +185,10 @@ func (g *Game) Update() error {
 	// go logFpsAvg()
 	// log.Printf("update took %v", time.Since(start))
 	return nil
+}
+
+func updatePlayerStats(g *Game) {
+	//
 }
 
 func playerAttack(g *Game) {
@@ -396,15 +402,10 @@ func handlePlayerProjectilesCollision(enemy *enemyI.Enemy, g *Game) {
 	enemyYCenter := enemy.PosY + enemyI.EnemyImageSize/4
 	enemySizeRadius := float32(math.Sqrt(enemyI.EnemyImageSize * 1.2))
 
-	alivePlayerProjectiles := getAlivePlayerProjectiles()
 	workers := 6 // runtime.GOMAXPROCS(0)
-	count := len(alivePlayerProjectiles)
+	// count is never 0 as len(enemyProjectiles) == min enemies on display
+	count := len(playerProjectiles)
 	// so we always have at least one workForEach
-	if count == 0 {
-		return
-	} else if count < workers {
-		workers = 1
-	}
 	workForEach := count / workers
 
 	var wg sync.WaitGroup
@@ -419,10 +420,12 @@ func handlePlayerProjectilesCollision(enemy *enemyI.Enemy, g *Game) {
 			defer wg.Done()
 
 			for i := start; i < end; i += 1 {
-				project := alivePlayerProjectiles[i]
-				hitBoxRadius := float64(project.Radius + enemySizeRadius)
-				if projectileCollision(project.OldPos, project.CurPos, projectile.Pos{X: enemyXCenter, Y: enemyYCenter}, hitBoxRadius) {
-					dmgTakenProjectilesCh <- &alivePlayerProjectiles[i]
+				if playerProjectiles[i].Alive {
+					project := playerProjectiles[i]
+					hitBoxRadius := float64(project.Radius + enemySizeRadius)
+					if projectileCollision(project.OldPos, project.CurPos, projectile.Pos{X: enemyXCenter, Y: enemyYCenter}, hitBoxRadius) {
+						dmgTakenProjectilesCh <- &playerProjectiles[i]
+					}
 				}
 			}
 		}(i, max)
@@ -434,22 +437,16 @@ func handlePlayerProjectilesCollision(enemy *enemyI.Enemy, g *Game) {
 
 	for v := range dmgTakenProjectilesCh {
 		enemy.Health -= v.Dmg
+		// makes enemy disapear
 		if enemy.Health <= 0 {
 			enemy.Alive = false
+
+			// add need stuff from enemy to player
+			g.exp += enemy.Exp
 		}
 		// otherwise it will make dmg every tick
 		v.Alive = false
 	}
-}
-
-func getAlivePlayerProjectiles() []projectile.Projectile {
-	var aliveProjectiles []projectile.Projectile
-	for _, v := range playerProjectiles {
-		if v.Alive {
-			aliveProjectiles = append(aliveProjectiles, v)
-		}
-	}
-	return aliveProjectiles
 }
 
 func handleEnemyProjectilesCollisions(g *Game) {
