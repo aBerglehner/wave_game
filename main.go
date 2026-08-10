@@ -464,14 +464,14 @@ func handlePlayerProjectilesCollision(enemy *enemyI.Enemy, g *Game) {
 	}()
 
 	for v := range dmgTakenProjectilesCh {
+		// makes enemy disapear
+		enemy.Health -= v.Dmg
 		if enemy.Health <= 0 {
 			enemy.Alive = false
 
 			// add need stuff from enemy to player
 			g.exp += enemy.Exp
 		}
-		// makes enemy disapear
-		enemy.Health -= v.Dmg
 		g.health += int(float32(g.dmg) * g.healthAbsorb)
 		// otherwise it will make dmg every tick
 		v.Alive = false
