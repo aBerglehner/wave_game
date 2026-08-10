@@ -96,7 +96,6 @@ var (
 	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{60, 80, 90, 100, 110, 120, 130, 140, 150, 160}
 	playerDmgLookup             [constants.LvlMax]int     = [...]int{20, 50, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
 	// 0.01 == 1% | 0.1 == 10%
-	// TODO:let it absorb
 	playerHealthAbsorbLookup  [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
 	playerHealthLookup        [constants.LvlMax]int     = [...]int{100, 200, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
 	playerMovementSpeedLookup [constants.LvlMax]float64 = [...]float64{100, 120, 150, 170, 190, 210, 230, 250, 270, 300}
@@ -163,10 +162,6 @@ func (g *Game) Update() error {
 	updatePlayerStats(g)
 
 	moveDistance := movementController(g)
-
-	// TODO:load check which monster is alive -> otherwise spawn a new one
-	// TODO:load it to random postion that is valid
-	// TODO:load only +1 -1 to own level monsters
 
 	playerPosX := g.posX
 	playerPosY := g.posY
@@ -646,7 +641,6 @@ func drawPlayer(g *Game, screen *ebiten.Image) {
 	drawPlayerDmgTaken(g, screen)
 }
 
-// TODO: idea draw the same for enemies???
 func drawPlayerDmgTaken(g *Game, screen *ebiten.Image) {
 	var r float32 = 21
 	var strokeWidth float32 = 0
