@@ -24,7 +24,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// TODO: movementSpeed
 // TODO: more attacks for each lvl
 
 //go:embed assets/font.otf
