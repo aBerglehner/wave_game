@@ -98,7 +98,7 @@ var (
 	// 0.01 == 1% | 0.1 == 10%
 	// TODO:let it absorb
 	playerHealthAbsorbLookup [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
-	playerHealthLookup       [constants.LvlMax]int     = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
+	playerHealthLookup       [constants.LvlMax]int     = [...]int{100, 200, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
 )
 
 // Game implements ebiten.Game interface.
@@ -126,7 +126,7 @@ func initGame() *Game {
 	return &Game{
 		posX:            10,
 		posY:            10,
-		health:          100,
+		health:          playerHealthLookup[0],
 		dmg:             playerDmgLookup[0],
 		healthAbsorb:    playerHealthAbsorbLookup[0],
 		level:           1,
@@ -210,6 +210,7 @@ func updatePlayerStats(g *Game) {
 
 		g.expNeeded = playerExpLvlLookup[lookup]
 
+		g.dmg = playerDmgLookup[lookup]
 		g.attackSpeed = playerAttackSpeedLookup[lookup]
 		g.projectileSpeed = playerProjectileSpeedLookup[lookup]
 	}
@@ -463,14 +464,15 @@ func handlePlayerProjectilesCollision(enemy *enemyI.Enemy, g *Game) {
 	}()
 
 	for v := range dmgTakenProjectilesCh {
-		enemy.Health -= v.Dmg
-		// makes enemy disapear
 		if enemy.Health <= 0 {
 			enemy.Alive = false
 
 			// add need stuff from enemy to player
 			g.exp += enemy.Exp
 		}
+		// makes enemy disapear
+		enemy.Health -= v.Dmg
+		g.health += int(float32(g.dmg) * g.healthAbsorb)
 		// otherwise it will make dmg every tick
 		v.Alive = false
 	}
