@@ -90,12 +90,14 @@ var (
 		10_000_0000, // 10
 	}
 	// ms
-	playerAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{800, 700, 600, 500, 400, 300, 200, 100, 80, 60}
+	playerAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{900, 700, 600, 500, 400, 300, 200, 100, 80, 60}
 	// pixels per second
-	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{70, 80, 90, 100, 110, 120, 130, 140, 150, 160}
-	playerDmgLookup             [constants.LvlMax]int     = [...]int{5, 20, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
+	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{60, 80, 90, 100, 110, 120, 130, 140, 150, 160}
+	playerDmgLookup             [constants.LvlMax]int     = [...]int{20, 50, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
 	// 0.01 == 1% | 0.1 == 10%
+	// TODO:let it absorb
 	playerHealthAbsorbLookup [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
+	playerHealthLookup       [constants.LvlMax]int     = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
 )
 
 // Game implements ebiten.Game interface.
@@ -188,7 +190,19 @@ func (g *Game) Update() error {
 }
 
 func updatePlayerStats(g *Game) {
-	//
+	if g.exp >= g.expNeeded {
+		g.exp = g.exp - g.expNeeded
+		g.level += 1
+
+		lookup := g.level - 1
+		g.health = playerHealthLookup[lookup]
+		g.healthAbsorb = playerHealthAbsorbLookup[lookup]
+
+		g.expNeeded = playerExpLvlLookup[lookup]
+
+		g.attackSpeed = playerAttackSpeedLookup[lookup]
+		g.projectileSpeed = playerProjectileSpeedLookup[lookup]
+	}
 }
 
 func playerAttack(g *Game) {
