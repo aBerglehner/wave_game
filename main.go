@@ -72,6 +72,8 @@ var (
 		image.Rect(64, 64, 128, 128), // bottom-right
 	}
 	playerProjectiles []projectile.Projectile
+	// used for restart
+	gameOver = false
 )
 
 // 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
@@ -155,7 +157,23 @@ func (g *Game) setPlayerLookupStats(lookup int) {
 func (g *Game) Update() error {
 	// Write your game's logical update.
 	// start := time.Now()
-	restartGameIfNeeded(g)
+
+	if g.health < 0 {
+		gameOver = true
+	}
+	if gameOver {
+		if ebiten.IsKeyPressed(ebiten.KeyR) {
+			restartGame(g)
+			gameOver = false
+		}
+
+		if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+			return ebiten.Termination
+		}
+
+		// Don't run the normal game logic.
+		return nil
+	}
 
 	updatePlayerStats(g)
 
@@ -200,15 +218,18 @@ func (g *Game) Update() error {
 	return nil
 }
 
-func restartGameIfNeeded(g *Game) {
-	// TODO:draw a popup???
-	if g.health <= 0 {
-		// restart game
-		g.enemies = enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
-		g.level = 1
-		g.exp = 0
-		g.setPlayerLookupStats(g.level)
-	}
+func restartGame(g *Game) {
+	// restart game
+	g.enemies = enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
+	g.level = 1
+	g.exp = 0
+
+	g.setPlayerLookupStats(g.level)
+
+	// create the init pool of enemyProjectiles
+	enemyProjectiles = projectile.ProjectilesInit(enemyI.EnemiesCount)
+	// create the init pool of playerProjectiles
+	playerProjectiles = projectile.ProjectilesInit(enemyI.EnemiesCount)
 }
 
 func updatePlayerStats(g *Game) {
@@ -674,6 +695,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	statsBottom(g, screen)
 
+	if gameOver {
+		drawGameOverPopup(g, screen)
+		// time.Sleep(10 * time.Second)
+	}
+
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()))
 	// log.Printf("draw took %v", time.Since(start))
 }
@@ -801,6 +827,77 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 			vector.FillRect(screen, healthBarPosX, healthBarPosY, life, lifeHeight, color.RGBA{150, 0, 0, 150}, false)
 		}
 	}
+}
+
+func drawGameOverPopup(g *Game, screen *ebiten.Image) {
+	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
+
+	// Dark overlay
+	overlay := ebiten.NewImage(w, h)
+	overlay.Fill(color.RGBA{
+		R: 0,
+		G: 0,
+		B: 0,
+		A: 160,
+	})
+	screen.DrawImage(overlay, nil)
+
+	// Popup dimensions
+	popupW := 400.0
+	popupH := 220.0
+
+	x := (float64(w) - popupW) / 2
+	y := (float64(h) - popupH) / 2
+
+	// Popup background
+	popup := ebiten.NewImage(int(popupW), int(popupH))
+	popup.Fill(color.RGBA{
+		R: 40,
+		G: 40,
+		B: 40,
+		A: 255,
+	})
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(x, y)
+	screen.DrawImage(popup, op)
+
+	// Text
+	drawText := func(textString string, x, y float64) {
+		op := &text.DrawOptions{}
+		op.GeoM.Translate(x, y)
+
+		text.Draw(
+			screen,
+			textString,
+			fontFace,
+			op,
+		)
+	}
+
+	drawText(
+		"GAME OVER",
+		x+150,
+		y+50,
+	)
+
+	drawText(
+		"You lost!",
+		x+170,
+		y+90,
+	)
+
+	drawText(
+		"Press R to restart",
+		x+125,
+		y+150,
+	)
+
+	drawText(
+		"Press ESC to quit",
+		x+135,
+		y+180,
+	)
 }
 
 type StatsInfo struct {
