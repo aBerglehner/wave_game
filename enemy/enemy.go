@@ -22,8 +22,8 @@ const (
 // 0 indexd -> can all be looked up via -> enemies lvl - 1 -> lvl 1 = index 0
 var (
 	enemyDmgLookup    [constants.LvlMax]int = [...]int{1, 10, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
-	EnemyHealthLookup [constants.LvlMax]int = [...]int{10, 100, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
-	enemyExpLookup    [constants.LvlMax]int = [...]int{10, 100, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000, 128_000}
+	EnemyHealthLookup [constants.LvlMax]int = [...]int{10, 50, 1_000, 5_000, 10_000, 50_000, 100_000, 500_000, 900_000, 2_000_000}
+	enemyExpLookup    [constants.LvlMax]int = [...]int{50, 1050, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 64_000, 128_000}
 	// slower on lower lvl
 	enemyAttackSpeedLookup [constants.LvlMax]int64   = [...]int64{1_500, 1_000, 850, 700, 600, 550, 500, 400, 350, 200}
 	enemyAttackRangeLookup [constants.LvlMax]float64 = [...]float64{100, 150, 180, 200, 220, 250, 280, 300, 320, 400}
