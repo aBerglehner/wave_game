@@ -91,9 +91,9 @@ var (
 		10_000_0000, // 10
 	}
 	// ms
-	playerAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{900, 700, 600, 500, 400, 300, 200, 100, 80, 60}
+	playerAttackSpeedLookup [constants.LvlMax]int64 = [...]int64{700, 500, 400, 300, 200, 150, 120, 100, 90, 80}
 	// pixels per second
-	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{60, 80, 90, 100, 110, 120, 130, 140, 150, 160}
+	playerProjectileSpeedLookup [constants.LvlMax]float64 = [...]float64{100, 120, 130, 150, 170, 190, 210, 240, 280, 300}
 	playerDmgLookup             [constants.LvlMax]int     = [...]int{20, 50, 100, 500, 1000, 10_000, 20_000, 50_000, 100_000, 200_000}
 	// 0.01 == 1% | 0.1 == 10%
 	playerHealthAbsorbLookup  [constants.LvlMax]float32 = [...]float32{0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3, 6, 12, 25}
