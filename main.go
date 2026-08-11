@@ -158,7 +158,7 @@ func (g *Game) Update() error {
 	// Write your game's logical update.
 	// start := time.Now()
 
-	if g.health < 0 {
+	if g.health < 0 || g.level == 10 {
 		gameOver = true
 	}
 	if gameOver {
@@ -236,6 +236,13 @@ func updatePlayerStats(g *Game) {
 	if g.exp >= g.expNeeded {
 		g.exp = g.exp - g.expNeeded
 		g.level += 1
+
+		// for now this is how I handle if I won
+		// TODO: better as below not hard coded
+		if g.level == 10 {
+			gameOver = true
+			return
+		}
 
 		lookup := g.level - 1
 		g.setPlayerLookupStats(lookup)
@@ -881,8 +888,18 @@ func drawGameOverPopup(g *Game, screen *ebiten.Image) {
 		y+50,
 	)
 
+	var lostOrWonText string
+	if g.health < 0 {
+		lostOrWonText = "You lost!"
+		// TODO: some max lvl instead of hard coded 10
+	} else if g.level == 10 {
+		lostOrWonText = "You won!"
+	} else {
+		lostOrWonText = "I don't know this case help!"
+	}
+
 	drawText(
-		"You lost!",
+		lostOrWonText,
 		x+170,
 		y+90,
 	)
