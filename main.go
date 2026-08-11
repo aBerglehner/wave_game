@@ -24,8 +24,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// TODO: more attacks for each lvl!
-
 //go:embed assets/font.otf
 var fontBytes []byte
 var fontFace *text.GoTextFace
@@ -232,34 +230,134 @@ func playerAttack(g *Game) {
 	}
 }
 
+type projectileAttackDirection struct {
+	dx float64
+	dy float64
+}
+
+// based on the player level this will create n projectileAttackDirection in which the player attacks
+func getLevelBasedProjectiles(g *Game) []projectileAttackDirection {
+	var result []projectileAttackDirection
+	if g.level == 1 {
+
+		var dx float64 = 0
+		var dy float64 = 0
+		// check which direction the player is looking -> there we shoot
+		if playerCurrentFrame == 1 { // up
+			dy -= 10
+		} else if playerCurrentFrame == 0 { // down
+			dy += 10
+		} else if playerCurrentFrame == 2 { // left
+			dx -= 10
+		} else if playerCurrentFrame == 3 { // right
+			dx += 10
+		}
+		result = append(result, projectileAttackDirection{dx: dx, dy: dy})
+
+	} else if g.level == 2 {
+		lookupLvl := map[int][]int{
+			1: {1, 0},
+			0: {1, 0},
+			2: {2, 3},
+			3: {2, 3},
+		}
+		for _, v := range lookupLvl[playerCurrentFrame] {
+
+			var dx float64 = 0
+			var dy float64 = 0
+			if v == 1 { // up
+				dy -= 10
+			} else if v == 0 { // down
+				dy += 10
+			} else if v == 2 { // left
+				dx -= 10
+			} else if v == 3 { // right
+				dx += 10
+			}
+			result = append(result, projectileAttackDirection{dx: dx, dy: dy})
+
+		}
+	} else if g.level == 3 {
+		lookupLvl := map[int][]int{
+			1: {1, 0, 3},
+			0: {1, 0, 2},
+			2: {2, 3, 1},
+			3: {2, 3, 0},
+		}
+		for _, v := range lookupLvl[playerCurrentFrame] {
+
+			var dx float64 = 0
+			var dy float64 = 0
+			if v == 1 { // up
+				dy -= 10
+			} else if v == 0 { // down
+				dy += 10
+			} else if v == 2 { // left
+				dx -= 10
+			} else if v == 3 { // right
+				dx += 10
+			}
+			result = append(result, projectileAttackDirection{dx: dx, dy: dy})
+
+		}
+	} else { // every level above 3
+		lookupLvl := map[int][]int{
+			1: {1, 0, 2, 3},
+			0: {1, 0, 2, 3},
+			2: {2, 3, 1, 0},
+			3: {2, 3, 1, 0},
+		}
+		for _, v := range lookupLvl[playerCurrentFrame] {
+
+			var dx float64 = 0
+			var dy float64 = 0
+			if v == 1 { // up
+				dy -= 10
+			} else if v == 0 { // down
+				dy += 10
+			} else if v == 2 { // left
+				dx -= 10
+			} else if v == 3 { // right
+				dx += 10
+			}
+			result = append(result, projectileAttackDirection{dx: dx, dy: dy})
+
+		}
+	}
+
+	return result
+}
+
 // createPlayerProjectile -> will create new projectiles every time
 func createPlayerProjectile(g *Game) {
 	playerX := g.posX + playerImageSize/2
 	playerY := g.posY + playerImageSize/2
 
-	// check which direction the player is looking -> there we shoot
-	var dx float64 = 0
-	var dy float64 = 0
-	if playerCurrentFrame == 1 { // up
-		dy -= 10
-	} else if playerCurrentFrame == 0 { // down
-		dy += 10
-	} else if playerCurrentFrame == 2 { // left
-		dx -= 10
-	} else if playerCurrentFrame == 3 { // right
-		dx += 10
+	projectileDirections := getLevelBasedProjectiles(g)
+	var attacks []projectile.Projectile
+	for _, v := range projectileDirections {
+		dx := v.dx
+		dy := v.dy
+		length := math.Sqrt(dx*dx + dy*dy)
+		dir := projectile.Pos{X: dx / length, Y: dy / length}
+		velocity := projectile.Pos{X: dir.X * g.projectileSpeed, Y: dir.Y * g.projectileSpeed}
+		attacks = append(attacks, projectile.NewProjectile(projectile.Pos{X: playerX, Y: playerY}, velocity, g.dmg))
 	}
 
-	length := math.Sqrt(dx*dx + dy*dy)
-	dir := projectile.Pos{X: dx / length, Y: dy / length}
-	velocity := projectile.Pos{X: dir.X * g.projectileSpeed, Y: dir.Y * g.projectileSpeed}
 	// find not alive playerProjectiles to use
 	doublePoolNeeded := true
 	for i := range playerProjectiles {
 		if !playerProjectiles[i].Alive {
-			playerProjectiles[i] = projectile.NewProjectile(projectile.Pos{X: playerX, Y: playerY}, velocity, g.dmg)
-			doublePoolNeeded = false
-			break
+
+			if len(attacks) <= 0 {
+				doublePoolNeeded = false
+				break
+			}
+
+			p := attacks[0]
+			attacks = attacks[1:]
+			playerProjectiles[i] = p
+
 		}
 	}
 
