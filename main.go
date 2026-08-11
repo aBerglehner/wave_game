@@ -812,7 +812,7 @@ func drawEnemies(g *Game, screen *ebiten.Image) {
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Scale(0.35, 0.35)
 			op.GeoM.Translate(enemy.PosX, enemy.PosY)
-			screen.DrawImage(enemy_images[enemy.Lvl], op)
+			screen.DrawImage(enemy_images[enemy.Lvl-1], op)
 
 			// health bar
 			// should be a percentage of 40. 40 == 100%
