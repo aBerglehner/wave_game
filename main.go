@@ -887,42 +887,50 @@ func drawGameOverPopup(g *Game, screen *ebiten.Image) {
 		)
 	}
 
-	drawText(
-		"GAME OVER",
-		x+150,
-		y+50,
-	)
-
-	var lostOrWonText string
-	var restartText string
 	if g.health < 0 {
-		lostOrWonText = "You lost!"
-		restartText = "Press R to restart"
+
+		drawText(
+			"GAME OVER",
+			x+150,
+			y+50,
+		)
+		drawText(
+			"You lost!",
+			x+170,
+			y+90,
+		)
+
+		drawText(
+			"Press R to restart",
+			x+125,
+			y+150,
+		)
+
+		drawText(
+			"Press ESC to quit",
+			x+135,
+			y+180,
+		)
+
 	} else if g.level == constants.LvlMax {
-		lostOrWonText = "You won!"
-		restartText = "Press R for next round"
-	} else {
-		lostOrWonText = "I don't know this case help!"
-		restartText = "I don't know this case help!"
+		drawText(
+			"You won!",
+			x+140,
+			y+70,
+		)
+
+		drawText(
+			"Press R for next round",
+			x+85,
+			y+130,
+		)
+
+		drawText(
+			"Press ESC to quit",
+			x+105,
+			y+160,
+		)
 	}
-
-	drawText(
-		lostOrWonText,
-		x+170,
-		y+90,
-	)
-
-	drawText(
-		restartText,
-		x+125,
-		y+150,
-	)
-
-	drawText(
-		"Press ESC to quit",
-		x+135,
-		y+180,
-	)
 }
 
 type StatsInfo struct {
