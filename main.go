@@ -705,7 +705,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	drawPlayerProjectiles(screen)
 	drawPlayer(g, screen)
 
-	statsBottom(g, screen)
+	drawStatsBottom(g, screen)
 
 	if gameOver {
 		drawGameOverPopup(g, screen)
@@ -938,7 +938,7 @@ type StatsInfo struct {
 	sizeNeeded int
 }
 
-func statsBottom(g *Game, screen *ebiten.Image) {
+func drawStatsBottom(g *Game, screen *ebiten.Image) {
 	// TODO: health show max health also (currently not available)
 
 	var bottomDistance int = 10
@@ -947,10 +947,11 @@ func statsBottom(g *Game, screen *ebiten.Image) {
 	var statsText []StatsInfo
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("round: %v", gameRound), 150})
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp: %d", g.health), 200})
-	statsText = append(statsText, StatsInfo{fmt.Sprintf("dmg: %v", g.dmg), 250})
-	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp absorb: %d%%", int(g.healthAbsorb*100)), 200})
-	statsText = append(statsText, StatsInfo{fmt.Sprintf("lvl: %v", g.level), 200})
-	statsText = append(statsText, StatsInfo{fmt.Sprintf("exp: %d%%", g.exp*100/g.expNeeded), 100})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("dmg: %v", g.dmg), 280})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp absorb: %d%%", int(g.healthAbsorb*100)), 250})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("lvl: %v", g.level), 100})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("exp: %d%%", g.exp*100/g.expNeeded), 180})
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("enemies: %v", enemyI.EnemiesCount*gameRound), 200})
 
 	var curPosX float64 = 10
 	for i := range statsText {
