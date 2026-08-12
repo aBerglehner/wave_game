@@ -126,10 +126,10 @@ func (e *Enemy) Patrol(maxWidth float64, maxHeight float64, moveDistance float64
 	}
 }
 
-func EnemyCreateInit(maxWidth float64, maxHeight float64) []Enemy {
+func EnemyCreateInit(maxWidth float64, maxHeight float64, enemiesMultiplier int) []Enemy {
 	var enemies []Enemy
 	aroundLvl := 1
-	for i := 0; i < EnemiesCount; i++ {
+	for i := 0; i < EnemiesCount*enemiesMultiplier; i++ {
 		enemies = append(enemies, EnemyCreate(aroundLvl, i, maxWidth, maxHeight))
 	}
 	return enemies
@@ -140,6 +140,7 @@ func EnemyCreate(aroundLvl int, randomNum int, maxWidth float64, maxHeight float
 	if randomNum%2 == 0 {
 		aroundLvl += 1
 	}
+	aroundLvl = min(aroundLvl, constants.LvlMax)
 
 	randomWidth := rand.Float64()*(maxWidth-1) + 1
 	randomHeight := rand.Float64()*(maxHeight-1) + 1

@@ -73,7 +73,8 @@ var (
 	}
 	playerProjectiles []projectile.Projectile
 	// used for restart
-	gameOver = false
+	gameOver  = false
+	gameRound = 1
 )
 
 // 0 indexd -> can be looked up via -> lvl - 1 indexed lvl 1 = index 0
@@ -123,7 +124,7 @@ type Game struct {
 }
 
 func initGame() *Game {
-	enemies := enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
+	enemies := enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, 1)
 	return &Game{
 		posX:            10,
 		posY:            10,
@@ -158,7 +159,7 @@ func (g *Game) Update() error {
 	// Write your game's logical update.
 	// start := time.Now()
 
-	if g.health < 0 || g.level == 10 {
+	if g.health < 0 || g.level == constants.LvlMax {
 		gameOver = true
 	}
 	if gameOver {
@@ -220,7 +221,12 @@ func (g *Game) Update() error {
 
 func restartGame(g *Game) {
 	// restart game
-	g.enemies = enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn)
+	if g.level == constants.LvlMax {
+		gameRound++
+	} else if g.health <= 0 {
+		gameRound = 1
+	}
+	g.enemies = enemyI.EnemyCreateInit(ScreenWidthMaxSpawn, ScreenHeightMaxSpawn, gameRound)
 	g.level = 1
 	g.exp = 0
 
@@ -238,8 +244,7 @@ func updatePlayerStats(g *Game) {
 		g.level += 1
 
 		// for now this is how I handle if I won
-		// TODO: better as below not hard coded
-		if g.level == 10 {
+		if g.level == constants.LvlMax {
 			gameOver = true
 			return
 		}
@@ -889,13 +894,16 @@ func drawGameOverPopup(g *Game, screen *ebiten.Image) {
 	)
 
 	var lostOrWonText string
+	var restartText string
 	if g.health < 0 {
 		lostOrWonText = "You lost!"
-		// TODO: some max lvl instead of hard coded 10
-	} else if g.level == 10 {
+		restartText = "Press R to restart"
+	} else if g.level == constants.LvlMax {
 		lostOrWonText = "You won!"
+		restartText = "Press R for next round"
 	} else {
 		lostOrWonText = "I don't know this case help!"
+		restartText = "I don't know this case help!"
 	}
 
 	drawText(
@@ -905,7 +913,7 @@ func drawGameOverPopup(g *Game, screen *ebiten.Image) {
 	)
 
 	drawText(
-		"Press R to restart",
+		restartText,
 		x+125,
 		y+150,
 	)
@@ -929,6 +937,7 @@ func statsBottom(g *Game, screen *ebiten.Image) {
 	yPos := float64(ScreenHeight - int(fontFace.Size) - bottomDistance)
 
 	var statsText []StatsInfo
+	statsText = append(statsText, StatsInfo{fmt.Sprintf("round: %v", gameRound), 150})
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp: %d", g.health), 200})
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("dmg: %v", g.dmg), 250})
 	statsText = append(statsText, StatsInfo{fmt.Sprintf("hp absorb: %d%%", int(g.healthAbsorb*100)), 200})
