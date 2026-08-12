@@ -939,8 +939,6 @@ type StatsInfo struct {
 }
 
 func drawStatsBottom(g *Game, screen *ebiten.Image) {
-	// TODO: health show max health also (currently not available)
-
 	var bottomDistance int = 10
 	yPos := float64(ScreenHeight - int(fontFace.Size) - bottomDistance)
 
